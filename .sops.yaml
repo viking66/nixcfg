@@ -1,0 +1,15 @@
+keys:
+  - &havoc age1ced0xy3235yxyd72fynngwc460gx5jy453v58dujcucxmgre2ekqv9qv0e
+  - &vesal age1gjvf45qgg3q6hmgeygw30q66c05vtzlf47t8v26m5c47zc57r4asayqduy
+creation_rules:
+  # Personal machine secrets - only havoc can decrypt
+  - path_regex: secrets/havoc-.*\.yaml$
+    key_groups:
+    - age:
+      - *havoc
+  
+  # Work machine secrets - only vesal-jason can decrypt
+  - path_regex: secrets/vesal-jason-.*\.yaml$
+    key_groups:
+    - age:
+      - *vesal
