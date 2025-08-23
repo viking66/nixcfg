@@ -5,4 +5,6 @@
     computerName = "havoc";
     hostName = "havoc";
   };
+
+  ids.gids.nixbld = 30000;
 }

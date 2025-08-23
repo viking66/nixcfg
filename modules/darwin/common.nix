@@ -58,8 +58,6 @@
     };
   };
 
-  ids.gids.nixbld = 30000;
-
   power.sleep = {
     allowSleepByPowerButton = true;
     computer = 20;
