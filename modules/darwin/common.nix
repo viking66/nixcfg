@@ -12,7 +12,6 @@
     };
     
     taps = [
-      "homebrew/bundle"
     ];
 
     caskArgs = {

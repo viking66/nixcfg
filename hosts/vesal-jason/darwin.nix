@@ -7,4 +7,8 @@
   };
 
   ids.gids.nixbld = 350;
+
+  homebrew.casks = [
+    "1password"
+  ];
 }
