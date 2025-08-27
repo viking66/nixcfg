@@ -30,3 +30,9 @@ language-servers = [ "ucm" ]
 name = "yaml"
 scope = "source.yaml"
 file-types = ["yaml", "yml", "yaml.enc", "yml.enc"]
+
+[language-server.golangci-lint-lsp]
+command = "golangci-lint-langserver"
+
+[language-server.golangci-lint-lsp.config]
+command = ["golangci-lint", "run", "--output.json.path=stdout", "--show-stats=false", "--issues-exit-code=1"]
