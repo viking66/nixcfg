@@ -10,6 +10,8 @@ popup-border = "all"
 jump-label-alphabet = "htnsaoeudigpfycrlbmjkxwqvz"
 rulers = [100]
 end-of-line-diagnostics = 'hint'
+trim-trailing-whitespace = true
+trim-final-newlines = true
 
 [keys.normal]
 t = "move_line_down"
