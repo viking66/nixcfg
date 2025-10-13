@@ -78,6 +78,7 @@
     age
     atuin
     bat
+    cargo
     comma
     coreutils
     curl
@@ -99,13 +100,13 @@
 
   programs = {
     nix-index.enable = true;
-    
+
     direnv = {
       enable = true;
       enableZshIntegration = true;
       nix-direnv.enable = true;
     };
-    
+
     zsh = {
       enable = true;
       initContent = builtins.readFile ../../dotfiles/zshrc;
@@ -130,7 +131,7 @@
     ".ssh/config".source = ../../dotfiles/ssh.config;
     ".config/starship.toml".source = ../../dotfiles/starship.toml;
     ".config/tmux/tmux.conf".source = ../../dotfiles/tmux.conf;
-    
+
     "bin" = {
       source = ../../bin;
       recursive = true;
