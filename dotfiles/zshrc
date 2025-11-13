@@ -4,6 +4,7 @@ export EDITOR='hx'
 export SOPS_AGE_KEY_FILE=~/.config/sops/age/key.txt
 
 CASE_SENSITIVE="true"
+setopt interactive_comments
 
 alias ls='ls --color=auto'
 alias ll='ls -alF'
