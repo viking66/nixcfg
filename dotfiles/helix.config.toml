@@ -40,6 +40,9 @@ y = ":yank-diagnostic"
 r = ":config-reload"
 F = ":format"
 
+[keys.normal.g]
+o = "jump_backward"
+
 [keys.select]
 t = "extend_line_down"
 n = "extend_line_up"
