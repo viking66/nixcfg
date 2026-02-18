@@ -1,5 +1,4 @@
-export PATH=/Users/jason/bin:$PATH
-export ZSH="$HOME/.oh-my-zsh"
+export PATH=/Users/jason/.local/bin:/Users/jason/bin:$PATH
 export EDITOR='hx'
 export SOPS_AGE_KEY_FILE=~/.config/sops/age/key.txt
 
@@ -11,8 +10,8 @@ alias ll='ls -alF'
 alias bat='bat --theme=Nord'
 alias useflake='echo "use flake" >> .envrc && direnv allow'
 
-plugins=(git direnv)
-[[ -f "$ZSH/oh-my-zsh.sh" ]] && source $ZSH/oh-my-zsh.sh
+autoload -Uz compinit && compinit
+
 [[ -f "/opt/homebrew/bin/brew" ]] && eval "$(/opt/homebrew/bin/brew shellenv)"
 [[ -f "$HOME/.nix-profile/etc/profile.d/nix.sh" ]] && . "$HOME/.nix-profile/etc/profile.d/nix.sh"
 [[ -f "$HOME/.nix-profile/etc/profile.d/hm-session-vars.sh" ]] && . "$HOME/.nix-profile/etc/profile.d/hm-session-vars.sh"
