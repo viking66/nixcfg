@@ -72,6 +72,14 @@
     shell = pkgs.zsh;
   };
 
+  environment.systemPackages = with pkgs; [
+    mosh
+  ];
+
+  # Ensure UTF-8 locale is set for all sessions including non-interactive
+  # SSH commands (required by mosh-server).
+  environment.variables.LANG = "en_US.UTF-8";
+
   programs.zsh.enable = true;
 
   launchd.user.agents.no-finder = {
