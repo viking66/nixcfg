@@ -8,7 +8,7 @@ setopt interactive_comments
 alias ls='ls --color=auto'
 alias ll='ls -alF'
 alias bat='bat --theme=Nord'
-alias useflake='echo "use flake \"git+ssh://git@github-work/vesal-security/jason\"" >> .envrc && direnv allow'
+alias useflake='echo "source_up\nuse flake \"git+ssh://git@github-work/vesal-security/jason\"" >> .envrc && direnv allow'
 
 autoload -Uz compinit && compinit
 
