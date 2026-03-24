@@ -1,11 +1,16 @@
-{ config, pkgs, lib, ... }:
+{ config, pkgs, lib, flakeRoot, ... }:
 
+let
+  isDarwin = pkgs.stdenv.isDarwin;
+in
 {
-  imports = [
-    ./sops.nix
-  ];
+  home = {
+    username = "jason";
+    homeDirectory = if isDarwin then "/Users/jason" else "/home/jason";
+    stateVersion = "24.05";
+  };
 
-  targets.darwin.defaults = {
+  targets.darwin.defaults = lib.mkIf isDarwin {
     NSGlobalDomain = {
       AppleICUForce24HourTime = true;
       AppleInterfaceStyle = "Dark";
@@ -109,7 +114,7 @@
 
     zsh = {
       enable = true;
-      initContent = builtins.readFile ../../dotfiles/zshrc;
+      initContent = builtins.readFile (flakeRoot + "/dotfiles/zshrc");
     };
   };
 
@@ -118,22 +123,22 @@
       encryption = "age"
       enter_accept = true
     '';
-    ".dir_colors".source = ../../dotfiles/dir_colors;
-    ".config/fourmolu.yaml".source = ../../dotfiles/fourmolu.yaml;
-    ".config/ghostty/config".source = ../../dotfiles/ghostty.config;
-    ".config/git/config".source = ../../dotfiles/git.config;
-    ".config/git/ignore".source = ../../dotfiles/git.ignore;
-    ".config/helix/config.toml".source = ../../dotfiles/helix.config.toml;
-    ".config/helix/languages.toml".source = ../../dotfiles/helix.languages.toml;
+    ".dir_colors".source = flakeRoot + "/dotfiles/dir_colors";
+    ".config/fourmolu.yaml".source = flakeRoot + "/dotfiles/fourmolu.yaml";
+    ".config/ghostty/config".source = flakeRoot + "/dotfiles/ghostty.config";
+    ".config/git/config".source = flakeRoot + "/dotfiles/git.config";
+    ".config/git/ignore".source = flakeRoot + "/dotfiles/git.ignore";
+    ".config/helix/config.toml".source = flakeRoot + "/dotfiles/helix.config.toml";
+    ".config/helix/languages.toml".source = flakeRoot + "/dotfiles/helix.languages.toml";
     ".config/nix/nix.conf".text = ''
       experimental-features = nix-command flakes
     '';
-    ".ssh/config".source = ../../dotfiles/ssh.config;
-    ".config/starship.toml".source = ../../dotfiles/starship.toml;
-    ".config/tmux/tmux.conf".source = ../../dotfiles/tmux.conf;
+    ".ssh/config".source = flakeRoot + "/dotfiles/ssh.config";
+    ".config/starship.toml".source = flakeRoot + "/dotfiles/starship.toml";
+    ".config/tmux/tmux.conf".source = flakeRoot + "/dotfiles/tmux.conf";
 
     "bin" = {
-      source = ../../bin;
+      source = flakeRoot + "/bin";
       recursive = true;
       executable = true;
     };

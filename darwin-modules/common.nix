@@ -1,6 +1,23 @@
-{ config, pkgs, lib, ... }:
+{ config, pkgs, lib, inputs, flakeRoot, ... }:
 
 {
+  imports = [
+    inputs.home-manager.darwinModules.home-manager
+  ];
+
+  home-manager = {
+    useGlobalPkgs = true;
+    useUserPackages = true;
+    extraSpecialArgs = { inherit inputs flakeRoot; };
+    sharedModules = [
+      inputs.sops-nix.homeManagerModules.sops
+    ];
+  };
+
+  nixpkgs.hostPlatform = "aarch64-darwin";
+  system.configurationRevision = inputs.self.rev or inputs.self.dirtyRev or null;
+  system.stateVersion = 6;
+
   system.primaryUser = "jason";
 
   homebrew = {
@@ -10,18 +27,18 @@
       cleanup = "zap";
       upgrade = true;
     };
-    
+
     taps = [
     ];
 
     caskArgs = {
       appdir = "/Applications";
     };
-    
+
     casks = [
       "ghostty"
     ];
-    
+
     brews = [
     ];
   };
@@ -29,7 +46,7 @@
   nix = {
     enable = true;
     package = pkgs.nixVersions.latest;
-    
+
     settings = {
       build-users-group = "nixbld";
       experimental-features = "nix-command flakes";
@@ -47,7 +64,7 @@
       trusted-users = [ "jason" ];
       builders-use-substitutes = true;
     };
-    
+
     linux-builder = {
       enable = true;
       maxJobs = 4;

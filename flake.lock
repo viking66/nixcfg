@@ -1,5 +1,48 @@
 {
   "nodes": {
+    "ez-configs": {
+      "inputs": {
+        "flake-parts": [
+          "flake-parts"
+        ],
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1750178074,
+        "narHash": "sha256-+ACS/Ris0V0a3BB6vEI/vTGk5huztx7a5f7eHJK1FaQ=",
+        "owner": "ehllie",
+        "repo": "ez-configs",
+        "rev": "eb320b3a6032a30e5fa67bebbaf381e6552f9441",
+        "type": "github"
+      },
+      "original": {
+        "owner": "ehllie",
+        "repo": "ez-configs",
+        "type": "github"
+      }
+    },
+    "flake-parts": {
+      "inputs": {
+        "nixpkgs-lib": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1772408722,
+        "narHash": "sha256-rHuJtdcOjK7rAHpHphUb1iCvgkU3GpfvicLMwwnfMT0=",
+        "owner": "hercules-ci",
+        "repo": "flake-parts",
+        "rev": "f20dc5d9b8027381c474144ecabc9034d6a839a3",
+        "type": "github"
+      },
+      "original": {
+        "owner": "hercules-ci",
+        "repo": "flake-parts",
+        "type": "github"
+      }
+    },
     "home-manager": {
       "inputs": {
         "nixpkgs": [
@@ -58,6 +101,8 @@
     },
     "root": {
       "inputs": {
+        "ez-configs": "ez-configs",
+        "flake-parts": "flake-parts",
         "home-manager": "home-manager",
         "nix-darwin": "nix-darwin",
         "nixpkgs": "nixpkgs",
