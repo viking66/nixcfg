@@ -36,7 +36,7 @@
 
     # Work-only alias
     programs.zsh.shellAliases = {
-      useflake = ''echo "source_up\nuse flake \"git+ssh://git@github-work/vesal-security/jason\"" >> .envrc && direnv allow'';
+      useflake = ''echo "source_up\nuse flake \"git+ssh://git@github-work/vesal-security/jason\" --refresh" >> .envrc && direnv allow'';
     };
   };
 }
