@@ -34,6 +34,8 @@
       ".ssh/gh_id_ed25519.pub".source = flakeRoot + "/secrets/gh_id_ed25519.pub";
     };
 
+    home.packages = [ pkgs.devenv ];
+
     # Work-only alias
     programs.zsh.shellAliases = {
       useflake = ''echo "source_up\nuse flake \"git+ssh://git@github-work/vesal-security/jason\" --refresh" >> .envrc && direnv allow'';
