@@ -29,6 +29,16 @@
       url = "github:Mic92/sops-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    disko = {
+      url = "github:nix-community/disko";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    comin = {
+      url = "github:nlewo/comin";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs = inputs@{ self, nixpkgs, flake-parts, ... }:
@@ -48,6 +58,12 @@
             userHomeModules = [ "jason" ];
           };
           vesal-jason = {
+            userHomeModules = [ "jason" ];
+          };
+        };
+
+        nixos.hosts = {
+          gordula = {
             userHomeModules = [ "jason" ];
           };
         };
