@@ -31,7 +31,7 @@
   # SSH — only accessible via Tailscale, not public internet
   services.openssh = {
     enable = true;
-    openFirewall = false;  # Don't auto-open port 22 in public firewall
+    openFirewall = true;  # TODO: set to false once Tailscale is verified working
     settings = {
       PermitRootLogin = "no";
       PasswordAuthentication = false;
