@@ -90,6 +90,7 @@ in
     script = ''
       export TMDB_API_KEY=$(cat "$CREDENTIALS_DIRECTORY/tmdb-api-key")
       export MY_LIST_DB_PATH="/var/lib/my-list/my-list.db"
+      export MY_LIST_BASE_URL="https://mylist.gordula.com"
       exec ${my-list}/bin/my-list
     '';
   };
