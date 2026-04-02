@@ -28,20 +28,21 @@
   time.timeZone = "UTC";
   i18n.defaultLocale = "en_US.UTF-8";
 
-  # SSH
+  # SSH — only accessible via Tailscale, not public internet
   services.openssh = {
     enable = true;
+    listenAddresses = [{ addr = "0.0.0.0"; port = 22; }];
     settings = {
       PermitRootLogin = "no";
       PasswordAuthentication = false;
     };
   };
 
-  # Firewall
+  # Firewall — SSH only via Tailscale (port 22 not public)
   networking.firewall = {
-    allowedTCPPorts = [ 22 80 443 ];
+    allowedTCPPorts = [ 80 443 ];
     allowedUDPPorts = [ 41641 ];        # Tailscale WireGuard
-    trustedInterfaces = [ "tailscale0" ]; # Allow all traffic over Tailscale
+    trustedInterfaces = [ "tailscale0" ]; # Allow all traffic over Tailscale (including SSH)
   };
 
   # Kernel hardening for public-facing server
