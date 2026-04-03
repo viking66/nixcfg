@@ -13,6 +13,7 @@ in
     inputs.comin.nixosModules.comin
     inputs.sops-nix.nixosModules.sops
     (flakeRoot + "/nixos-modules/common.nix")
+    (flakeRoot + "/nixos-modules/media.nix")
   ];
 
   networking.hostName = "gordula";
