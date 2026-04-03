@@ -91,6 +91,8 @@ in
       export TMDB_API_KEY=$(cat "$CREDENTIALS_DIRECTORY/tmdb-api-key")
       export MY_LIST_DB_PATH="/var/lib/my-list/my-list.db"
       export MY_LIST_BASE_URL="https://mylist.gordula.com"
+      export MY_LIST_VERSION="${inputs.my-list.rev or "unknown"}"
+      export MY_LIST_BUILD_TIME="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
       exec ${my-list}/bin/my-list
     '';
   };
