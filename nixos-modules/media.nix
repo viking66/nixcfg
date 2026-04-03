@@ -138,6 +138,7 @@
   services.caddy.virtualHosts.":9000" = {
     extraConfig = ''
       bind 0.0.0.0
+      header Content-Type "text/html; charset=utf-8"
       respond `<!DOCTYPE html>
       <html>
       <head>
