@@ -63,6 +63,12 @@
     listenPort = 6767;
   };
 
+  # ── Inotify limits — needed for Jellyfin real-time library monitoring ──
+  boot.kernel.sysctl = {
+    "fs.inotify.max_user_watches" = 524288;
+    "fs.inotify.max_user_instances" = 512;
+  };
+
   # ── Intel Quick Sync / VAAPI — hardware transcoding ───────────────
   # i7-8700 has UHD 630 (Coffee Lake, Gen 9.5)
   boot.kernelParams = [ "i915.enable_guc=2" ];
