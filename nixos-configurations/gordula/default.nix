@@ -13,23 +13,7 @@ in
     inputs.comin.nixosModules.comin
     inputs.sops-nix.nixosModules.sops
     (flakeRoot + "/nixos-modules/common.nix")
-    # (flakeRoot + "/nixos-modules/media.nix")  # re-add after cleanup deploy
-  ];
-
-  # ONE-TIME CLEANUP: remove after next deploy
-  systemd.tmpfiles.rules = [
-    "R /var/lib/sabnzbd -"
-    "R /var/lib/sonarr -"
-    "R /var/lib/radarr -"
-    "R /var/lib/readarr -"
-    "R /var/lib/bazarr -"
-    "R /var/lib/jellyfin -"
-    "R /var/lib/private/jellyseerr -"
-    "R /var/lib/prowlarr -"
-    "R /var/lib/private/prowlarr -"
-    "R /var/lib/recyclarr -"
-    "R /var/lib/private/recyclarr -"
-    "R /var/cache/jellyfin -"
+    (flakeRoot + "/nixos-modules/media.nix")
   ];
 
   networking.hostName = "gordula";
