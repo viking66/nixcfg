@@ -59,12 +59,14 @@
   services.sonarr = {
     enable = true;
     group = "media";
+    settings.auth.method = "Forms";
   };
 
   # ── Radarr — movie automation ─────────────────────────────────────
   services.radarr = {
     enable = true;
     group = "media";
+    settings.auth.method = "Forms";
   };
 
   # ── Readarr — ebook/audiobook automation ──────────────────────────
