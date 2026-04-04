@@ -13,7 +13,7 @@ in
     inputs.comin.nixosModules.comin
     inputs.sops-nix.nixosModules.sops
     (flakeRoot + "/nixos-modules/common.nix")
-    (flakeRoot + "/nixos-modules/media.nix")
+    # (flakeRoot + "/nixos-modules/media.nix")  # temporarily removed to reset all media services
   ];
 
   networking.hostName = "gordula";
