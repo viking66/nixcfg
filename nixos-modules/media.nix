@@ -35,6 +35,23 @@
     group = "media";
   };
 
+  # Workaround: the NixOS sabnzbd module's preStart config_merge.py crashes
+  # if sabnzbd.ini doesn't exist yet (first boot). Seed with minimal config
+  # that binds to all interfaces and allows access from Tailscale.
+  systemd.services.sabnzbd.preStart = lib.mkBefore ''
+    if [ ! -f /var/lib/sabnzbd/sabnzbd.ini ]; then
+      cat > /var/lib/sabnzbd/sabnzbd.ini << 'SABCFG'
+    [misc]
+    host = 0.0.0.0
+    port = 8080
+    inet_exposure = 4
+    host_whitelist = gordula, gordula.tail1993ce.ts.net,
+    download_dir = /media/downloads/incomplete
+    complete_dir = /media/downloads/complete
+    SABCFG
+    fi
+  '';
+
   # ── Prowlarr — indexer manager ────────────────────────────────────
   services.prowlarr.enable = true;
 
