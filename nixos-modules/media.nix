@@ -45,6 +45,7 @@
     host = 0.0.0.0
     port = 8080
     inet_exposure = 4
+    permissions = 775
     host_whitelist = gordula, gordula.tail1993ce.ts.net,
     download_dir = /media/downloads/incomplete
     complete_dir = /media/downloads/complete
