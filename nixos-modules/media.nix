@@ -59,16 +59,12 @@
   services.sonarr = {
     enable = true;
     group = "media";
-    # TODO: remove after setting new passwords
-    settings.auth.method = "External";
   };
 
   # ── Radarr — movie automation ─────────────────────────────────────
   services.radarr = {
     enable = true;
     group = "media";
-    # TODO: remove after setting new passwords
-    settings.auth.method = "External";
   };
 
   # ── Readarr — ebook/audiobook automation ──────────────────────────
