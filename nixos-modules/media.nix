@@ -54,26 +54,30 @@
   '';
 
   # ── Prowlarr — indexer manager ────────────────────────────────────
-  services.prowlarr.enable = true;
+  services.prowlarr = {
+    enable = true;
+    settings.auth.method = "External";
+  };
 
   # ── Sonarr — TV show automation ───────────────────────────────────
   services.sonarr = {
     enable = true;
     group = "media";
-    settings.auth.method = "Forms";
+    settings.auth.method = "External";
   };
 
   # ── Radarr — movie automation ─────────────────────────────────────
   services.radarr = {
     enable = true;
     group = "media";
-    settings.auth.method = "Forms";
+    settings.auth.method = "External";
   };
 
   # ── Readarr — ebook/audiobook automation ──────────────────────────
   services.readarr = {
     enable = true;
     group = "media";
+    settings.auth.method = "External";
   };
 
   # ── Bazarr — subtitle management ─────────────────────────────────
