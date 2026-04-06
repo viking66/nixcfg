@@ -6,7 +6,20 @@
 #   - Everything else: Tailscale only (firewall blocks non-Tailscale traffic on these ports)
 { config, pkgs, lib, flakeRoot, ... }:
 
+let
+  # Script that triggers a Jellyfin library scan via API.
+  # Used as a Custom Script connection in Sonarr/Radarr to work around
+  # the broken Emby/Jellyfin "Update Library" integration.
+  # https://github.com/Sonarr/Sonarr/issues/8066
+  jellyfin-scan = pkgs.writeShellScriptBin "jellyfin-scan" ''
+    exec ${pkgs.curl}/bin/curl -s -X POST \
+      "http://127.0.0.1:8096/Library/Refresh" \
+      -H "X-MediaBrowser-Token: ''${JELLYFIN_API_KEY}"
+  '';
+in
 {
+  # Make the scan script available system-wide
+  environment.systemPackages = [ jellyfin-scan ];
   # ── Unfree packages needed by the media stack ─────────────────────
   nixpkgs.config.allowUnfreePredicate = pkg:
     builtins.elem (lib.getName pkg) [
