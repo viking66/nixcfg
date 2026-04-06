@@ -12,9 +12,10 @@ let
   # the broken Emby/Jellyfin "Update Library" integration.
   # https://github.com/Sonarr/Sonarr/issues/8066
   jellyfin-scan = pkgs.writeShellScriptBin "jellyfin-scan" ''
+    JFKEY=$(cat /run/secrets/media/jellyfin/api-key 2>/dev/null) || exit 0
     exec ${pkgs.curl}/bin/curl -s -X POST \
       "http://127.0.0.1:8096/Library/Refresh" \
-      -H "X-MediaBrowser-Token: ''${JELLYFIN_API_KEY}"
+      -H "X-MediaBrowser-Token: $JFKEY"
   '';
 in
 {
@@ -25,6 +26,12 @@ in
     builtins.elem (lib.getName pkg) [
       "unrar" # SABnzbd needs unrar for extracting RAR archives
     ];
+
+  # ── SOPS secrets ──────────────────────────────────────────────────
+  sops.secrets."media/jellyfin/api-key" = {
+    group = "media";
+    mode = "0440";
+  };
 
   # ── Shared media group ────────────────────────────────────────────
   # All media services run under this group so they can read/write /media
