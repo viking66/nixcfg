@@ -1,4 +1,4 @@
-{ config, pkgs, lib, flakeRoot, ... }:
+{ config, pkgs, lib, inputs, flakeRoot, ... }:
 
 let
   isDarwin = pkgs.stdenv.isDarwin;
@@ -96,6 +96,7 @@ in
     inconsolata
     mcp-nixos
     moreutils
+    inputs.qmd.packages.${pkgs.stdenv.hostPlatform.system}.default
     ripgrep
     starship
     tree

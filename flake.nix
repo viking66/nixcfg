@@ -44,6 +44,11 @@
       url = "github:viking66/my-list";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    qmd = {
+      url = "github:tobi/qmd";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs = inputs@{ self, nixpkgs, flake-parts, ... }:
