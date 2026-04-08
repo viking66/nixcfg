@@ -219,11 +219,11 @@
         "ps-overlay": "ps-overlay_2"
       },
       "locked": {
-        "lastModified": 1775603357,
-        "narHash": "sha256-crHPECpWEDxu0cNHgLX+sXLh800mE6ZVv5gUoDur7Dw=",
+        "lastModified": 1775609813,
+        "narHash": "sha256-pB6eIkX2Ew08m4A1+CMJwATmpEcU6JZLztidbdyXLnQ=",
         "owner": "viking66",
         "repo": "my-list",
-        "rev": "07e618cff95e2193763d14825a3392efb415c9b4",
+        "rev": "280780f04a53511ced22150779498f303b2d4c60",
         "type": "github"
       },
       "original": {
