@@ -83,23 +83,99 @@
         apps = {
           switch = {
             type = "app";
-            program = toString (pkgs.writeShellScript "switch" ''
-              set -e
-              HOSTNAME=$(hostname -s)
-              echo "Detected hostname: $HOSTNAME"
+            program = toString (pkgs.writeShellScript "switch" (
+              if pkgs.stdenv.isDarwin then ''
+                set -e
+                HOSTNAME=$(hostname -s)
+                echo "Detected hostname: $HOSTNAME"
 
-              # Check if running as root
-              if [ "$EUID" -ne 0 ]; then
-                echo "This script must be run with sudo:"
-                echo "  sudo nix run .#switch"
-                exit 1
-              fi
+                if [ "$EUID" -ne 0 ]; then
+                  echo "This script must be run with sudo:"
+                  echo "  sudo nix run .#switch"
+                  exit 1
+                fi
 
-              # darwin-rebuild applies both darwin config and home-manager
-              # (home-manager is integrated as a darwin module)
-              echo "Applying Darwin + Home Manager configuration..."
-              darwin-rebuild switch --flake .#$HOSTNAME
-            '');
+                # Resolve the invoking user's home (sudo sets HOME=/var/root).
+                ACTUAL_USER="''${SUDO_USER:-$USER}"
+                KEY_PATH="/Users/$ACTUAL_USER/.config/sops/age/key.txt"
+
+                if [ ! -f "$KEY_PATH" ]; then
+                  cat >&2 <<EOF
+
+                ERROR: sops age key not found at $KEY_PATH
+
+                Copy your AGE secret key (AGE-SECRET-KEY-1...) to the clipboard,
+                then run:
+
+                  mkdir -p "$(dirname "$KEY_PATH")" && pbpaste > "$KEY_PATH" && chmod 600 "$KEY_PATH"
+
+                EOF
+                  exit 1
+                fi
+
+                KEY_PERMS=$(${pkgs.coreutils}/bin/stat -c '%a' "$KEY_PATH")
+                if [ "$KEY_PERMS" != "600" ]; then
+                  cat >&2 <<EOF
+
+                ERROR: sops age key at $KEY_PATH has insecure permissions ($KEY_PERMS)
+
+                Fix with:
+
+                  chmod 600 "$KEY_PATH"
+
+                EOF
+                  exit 1
+                fi
+
+                # darwin-rebuild applies both darwin config and home-manager
+                # (home-manager is integrated as a darwin module)
+                echo "Applying Darwin + Home Manager configuration..."
+                darwin-rebuild switch --flake .#$HOSTNAME
+              '' else ''
+                set -e
+                HOSTNAME=$(hostname -s)
+                echo "Detected hostname: $HOSTNAME"
+
+                if [ "$EUID" -ne 0 ]; then
+                  echo "This script must be run with sudo:"
+                  echo "  sudo nix run .#switch"
+                  exit 1
+                fi
+
+                KEY_PATH="/var/lib/sops-nix/key.txt"
+
+                if [ ! -f "$KEY_PATH" ]; then
+                  cat >&2 <<EOF
+
+                ERROR: sops age key not found at $KEY_PATH
+
+                Paste your AGE secret key (AGE-SECRET-KEY-1...) into the
+                following command, then press Ctrl-D:
+
+                  sudo install -d -m 0755 /var/lib/sops-nix && sudo install -m 0400 /dev/stdin /var/lib/sops-nix/key.txt
+
+                EOF
+                  exit 1
+                fi
+
+                KEY_PERMS=$(${pkgs.coreutils}/bin/stat -c '%a' "$KEY_PATH")
+                if [ "$KEY_PERMS" != "400" ]; then
+                  cat >&2 <<EOF
+
+                ERROR: sops age key at $KEY_PATH has insecure permissions ($KEY_PERMS)
+
+                Fix with:
+
+                  sudo chmod 400 "$KEY_PATH"
+
+                EOF
+                  exit 1
+                fi
+
+                echo "Applying NixOS configuration..."
+                nixos-rebuild switch --flake .#$HOSTNAME
+              ''
+            ));
           };
 
           switch-home = {

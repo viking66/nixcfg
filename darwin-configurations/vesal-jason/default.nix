@@ -12,6 +12,15 @@
 
   ids.gids.nixbld = 350;
 
+  # Include the home-manager-rendered access-tokens snippet so the nix daemon
+  # can fetch private GitHub flake inputs (e.g. viking66/my-list). The file is
+  # produced by the sops template defined inside `home-manager.users.jason`
+  # below — system-level sops-nix on darwin doesn't actually run secret/template
+  # activation, so all sops work has to live at the home-manager level.
+  nix.extraOptions = ''
+    !include /Users/jason/.config/nix/access-tokens.conf
+  '';
+
   homebrew.casks = [
     "1password"
     "1password-cli"
@@ -27,6 +36,14 @@
           path = "${config.home.homeDirectory}/.ssh/gh_id_ed25519";
           mode = "0600";
         };
+        "viking66-github/token" = {};
+      };
+
+      templates."nix-access-tokens" = {
+        path = "${config.home.homeDirectory}/.config/nix/access-tokens.conf";
+        content = ''
+          access-tokens = github.com=${config.sops.placeholder."viking66-github/token"}
+        '';
       };
     };
 

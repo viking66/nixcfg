@@ -2,6 +2,6 @@
 
 {
   sops = {
-    age.keyFile = "${config.home.homeDirectory}/.config/nixcfg/key.txt";
+    age.keyFile = "${config.home.homeDirectory}/.config/sops/age/key.txt";
   };
 }
