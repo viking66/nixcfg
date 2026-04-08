@@ -119,6 +119,9 @@ in
             {
               url = "s3://my-list-backups/my-list.db";
               endpoint = "https://s3.eu-central-003.backblazeb2.com";
+              retention = "168h";
+              retention-check-interval = "1h";
+              snapshot-interval = "24h";
             }
           ];
         }
