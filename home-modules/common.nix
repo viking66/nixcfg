@@ -94,6 +94,7 @@ in
     helix
     home-manager
     inconsolata
+    mcp-nixos
     moreutils
     ripgrep
     starship

@@ -29,6 +29,7 @@
     };
 
     taps = [
+      "yakitrak/yakitrak"
     ];
 
     caskArgs = {
@@ -37,9 +38,11 @@
 
     casks = [
       "ghostty"
+      "obsidian"
     ];
 
     brews = [
+      "yakitrak/yakitrak/obsidian-cli"
     ];
   };
 
