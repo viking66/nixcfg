@@ -66,6 +66,7 @@
     tmux
     curl
     jq
+    sops
   ];
 
   # Caddy reverse proxy — automatic HTTPS via Let's Encrypt

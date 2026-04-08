@@ -53,11 +53,19 @@ in
     secrets = {
       "github/token" = {};
       "my-list/tmdb-api-key" = {};
+      "my-list/LITESTREAM_ACCESS_KEY_ID" = {};
+      "my-list/LITESTREAM_SECRET_ACCESS_KEY" = {};
     };
 
     # Template: renders a nix.conf snippet with the decrypted token
     templates."nix-access-tokens".content = ''
       access-tokens = github.com=${config.sops.placeholder."github/token"}
+    '';
+
+    # Template: Litestream environment file with B2 credentials
+    templates."litestream-env".content = ''
+      LITESTREAM_ACCESS_KEY_ID=${config.sops.placeholder."my-list/LITESTREAM_ACCESS_KEY_ID"}
+      LITESTREAM_SECRET_ACCESS_KEY=${config.sops.placeholder."my-list/LITESTREAM_SECRET_ACCESS_KEY"}
     '';
   };
 
@@ -81,7 +89,8 @@ in
     wantedBy = [ "multi-user.target" ];
 
     serviceConfig = {
-      DynamicUser = true;
+      User = "my-list";
+      Group = "my-list";
       StateDirectory = "my-list";
       Restart = "on-failure";
       RestartSec = 5;
@@ -97,6 +106,38 @@ in
       exec ${my-list}/bin/my-list
     '';
   };
+
+  # Litestream — continuous SQLite backup to Backblaze B2
+  services.litestream = {
+    enable = true;
+    environmentFile = config.sops.templates."litestream-env".path;
+    settings = {
+      dbs = [
+        {
+          path = "/var/lib/my-list/my-list.db";
+          replicas = [
+            {
+              url = "s3://my-list-backups/my-list.db";
+              endpoint = "https://s3.eu-central-003.backblazeb2.com";
+            }
+          ];
+        }
+      ];
+    };
+  };
+
+  # Static user for my-list (needed so Litestream can share DB access)
+  users.users.my-list = {
+    isSystemUser = true;
+    group = "my-list";
+  };
+  users.groups.my-list = {};
+
+  # Run Litestream as the my-list user so it can access the DB
+  systemd.services.litestream.after = [ "my-list.service" ];
+  systemd.services.litestream.wants = [ "my-list.service" ];
+  systemd.services.litestream.serviceConfig.User = "my-list";
+  systemd.services.litestream.serviceConfig.Group = "my-list";
 
   # SSH access — ed25519 key from havoc
   users.users.jason = {
