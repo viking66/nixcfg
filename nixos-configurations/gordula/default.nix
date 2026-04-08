@@ -139,8 +139,8 @@ in
   # Run Litestream as the my-list user so it can access the DB
   systemd.services.litestream.after = [ "my-list.service" ];
   systemd.services.litestream.wants = [ "my-list.service" ];
-  systemd.services.litestream.serviceConfig.User = "my-list";
-  systemd.services.litestream.serviceConfig.Group = "my-list";
+  systemd.services.litestream.serviceConfig.User = lib.mkForce "my-list";
+  systemd.services.litestream.serviceConfig.Group = lib.mkForce "my-list";
 
   # SSH access — ed25519 key from havoc
   users.users.jason = {
