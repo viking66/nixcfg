@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Happy Birthday Dani!</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: #000;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100dvh;
+      overflow: hidden;
+      font-family: sans-serif;
+    }
+
+    /* --- Page container --- */
+    .pages {
+      position: relative;
+      width: 100vw;
+      height: 100dvh;
+      max-width: 768px;
+      max-height: calc(100vw * 1344 / 768);
+      aspect-ratio: 768 / 1344;
+      overflow: hidden;
+    }
+
+    @media (min-aspect-ratio: 768/1344) {
+      .pages {
+        width: auto;
+        height: 100dvh;
+      }
+    }
+
+    .page {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      transition: transform 0.5s ease;
+    }
+
+    .page.page-left { transform: translateX(-100%); }
+    .page.page-center { transform: translateX(0); }
+    .page.page-right { transform: translateX(100%); }
+
+    /* --- Card (animation page) --- */
+    .card {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      perspective: 1200px;
+      transform-style: preserve-3d;
+    }
+
+    .layer {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+
+    .layer img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .character {
+      position: absolute;
+      pointer-events: none;
+    }
+
+    .character img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    /* --- Pop-up fold from below --- */
+    .pop-up {
+      opacity: 0;
+      transform: rotateX(-90deg);
+      transform-origin: bottom center;
+      transform-style: preserve-3d;
+    }
+
+    .pop-up.show {
+      animation: popUp 1s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+    }
+
+    @keyframes popUp {
+      0% {
+        opacity: 0;
+        transform: rotateX(-90deg) rotateY(-15deg);
+      }
+      20% {
+        opacity: 1;
+      }
+      50% {
+        transform: rotateX(5deg) rotateY(4deg);
+      }
+      70% {
+        transform: rotateX(-3deg) rotateY(-2deg);
+      }
+      100% {
+        opacity: 1;
+        transform: rotateX(0deg) rotateY(0deg);
+      }
+    }
+
+    /* --- Fade in --- */
+    .fade-in {
+      opacity: 0;
+    }
+
+    .fade-in.show {
+      animation: fadeIn 0.8s ease forwards;
+    }
+
+    @keyframes fadeIn {
+      to { opacity: 1; }
+    }
+
+    /* --- Milan peeks in --- */
+    .peek-in {
+      opacity: 0;
+      transform: translateY(-30px);
+    }
+
+    .peek-in.show {
+      animation: peekIn 0.5s ease-out forwards;
+    }
+
+    @keyframes peekIn {
+      0% { opacity: 0; transform: translateY(-30px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+
+    /* --- Float away --- */
+    .floating {
+      animation: floatAway 3s ease-in forwards !important;
+    }
+
+    @keyframes floatAway {
+      0% {
+        transform: translateY(0) rotate(0deg);
+        opacity: 1;
+      }
+      100% {
+        transform: translateY(-120vh) rotate(15deg);
+        opacity: 0;
+      }
+    }
+
+    /* --- Candle flames --- */
+    .candle-flames {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 40;
+    }
+
+    .flame {
+      position: absolute;
+      width: 8px;
+      height: 18px;
+      background: radial-gradient(ellipse at center, #fff 0%, #ffdd44 30%, #ff8800 60%, transparent 100%);
+      border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+      box-shadow: 0 0 8px 4px rgba(255, 200, 50, 0.6);
+      opacity: 0;
+      transform: scale(0);
+    }
+
+    .flame.lit {
+      animation: lightUp 0.4s ease-out forwards, flicker 0.3s ease-in-out 0.4s infinite alternate;
+    }
+
+    @keyframes lightUp {
+      0% { opacity: 0; transform: scale(0); }
+      50% { opacity: 1; transform: scale(1.3); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+
+    @keyframes flicker {
+      0% { transform: scaleY(1) scaleX(1) rotate(-2deg); opacity: 0.9; }
+      100% { transform: scaleY(1.3) scaleX(0.8) rotate(2deg); opacity: 1; }
+    }
+
+    /* --- Start overlay --- */
+    .start-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 50%, #fdfcfb 100%);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 100;
+      cursor: pointer;
+      transition: opacity 0.5s ease;
+    }
+
+    .start-overlay.hide {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .start-overlay h1 {
+      font-size: 2rem;
+      color: #d63384;
+      text-align: center;
+      margin-bottom: 1rem;
+      font-family: Georgia, serif;
+    }
+
+    .start-overlay p {
+      font-size: 1rem;
+      color: #d63384;
+      opacity: 0.7;
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 0.4; }
+      50% { opacity: 0.9; }
+    }
+
+    .hidden {
+      visibility: hidden;
+    }
+
+    /* Ash falls back down */
+    .falling {
+      animation: fallDown 2s cubic-bezier(0.45, 0, 0.85, 0.5) forwards !important;
+    }
+
+    @keyframes fallDown {
+      0% {
+        transform: translateY(-120vh) rotate(15deg);
+        opacity: 0;
+      }
+      15% {
+        opacity: 1;
+      }
+      70% {
+        transform: translateY(0) rotate(-5deg);
+      }
+      85% {
+        transform: translateY(-15px) rotate(2deg);
+      }
+      100% {
+        transform: translateY(0) rotate(0deg);
+        opacity: 1;
+      }
+    }
+
+    /* Flame going out */
+    .flame.out {
+      animation: flameOut 0.3s ease-out forwards !important;
+    }
+
+    @keyframes flameOut {
+      0% { opacity: 1; transform: scale(1); }
+      100% { opacity: 0; transform: scale(0) translateY(5px); }
+    }
+
+    /* Blackout overlay */
+    .blackout {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: #000;
+      z-index: 30;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.5s ease;
+    }
+
+    .blackout.dark {
+      opacity: 1;
+    }
+
+    .blackout.reveal {
+      opacity: 0;
+      transition: opacity 0.8s ease;
+    }
+
+    .crossfade-in {
+      visibility: visible;
+      animation: crossIn 0.5s ease forwards;
+    }
+
+    .crossfade-out {
+      animation: crossOut 0.5s ease forwards;
+    }
+
+    @keyframes crossIn {
+      0% { opacity: 0; }
+      100% { opacity: 1; }
+    }
+
+    @keyframes crossOut {
+      0% { opacity: 1; }
+      100% { opacity: 0; }
+    }
+
+    /* --- Navigation arrows --- */
+    .nav-arrow {
+      position: absolute;
+      bottom: 20px;
+      width: 50px;
+      height: 50px;
+      background: rgba(255, 255, 255, 0.3);
+      border: 2px solid rgba(255, 255, 255, 0.6);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 60;
+      font-size: 1.2rem;
+      color: #fff;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.5s ease;
+      backdrop-filter: blur(4px);
+    }
+
+    .nav-arrow.visible {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .nav-arrow:active {
+      background: rgba(255, 255, 255, 0.5);
+    }
+
+    .nav-arrow.left { left: 15px; }
+    .nav-arrow.right { right: 15px; }
+
+    /* --- Message page --- */
+    .message-page {
+      background: linear-gradient(135deg, #fdfcfb 0%, #fecfef 50%, #ff9a9e 100%);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 2rem;
+    }
+
+    .message-page {
+      overflow-y: auto;
+      padding: 3rem 1.5rem 5rem;
+    }
+
+    .message-page .message {
+      font-family: Georgia, serif;
+      font-size: 1rem;
+      color: #d63384;
+      text-align: left;
+      line-height: 1.7;
+      max-width: 90%;
+    }
+
+    .message-page .message h2 {
+      font-size: 1.4rem;
+      text-align: center;
+      margin-bottom: 1.2rem;
+      font-weight: normal;
+    }
+
+    .message-page .message p {
+      margin-bottom: 1rem;
+    }
+
+    .message-page .message .strike {
+      text-decoration: line-through;
+      text-decoration-thickness: 2px;
+    }
+
+    /* --- Cover page --- */
+    .cover-page {
+      background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 50%, #fdfcfb 100%);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+    }
+
+    .cover-page h1 {
+      font-size: 2rem;
+      color: #d63384;
+      text-align: center;
+      margin-bottom: 1rem;
+      font-family: Georgia, serif;
+    }
+
+    .cover-page p {
+      font-size: 1rem;
+      color: #d63384;
+      opacity: 0.7;
+      animation: pulse 2s ease-in-out infinite;
+    }
+  </style>
+</head>
+<body>
+
+<div class="pages" id="pages">
+
+  <!-- PAGE 0: Cover -->
+  <div class="page cover-page page-center" id="pageCover" onclick="goToCard()">
+    <h1>Happy Birthday<br>Dani!</h1>
+    <p>Tap to open your card</p>
+  </div>
+
+  <!-- PAGE 1: Animation card -->
+  <div class="page page-right" id="pageCard">
+    <div class="card" id="card">
+
+      <!-- z-index 1: Background empty room -->
+      <div class="layer fade-in" id="background" style="z-index: 1;">
+        <img src="empty_background.png" alt="Background">
+      </div>
+
+      <!-- z-index 2: Full background with Dani & Jason -->
+      <div class="layer hidden" id="backgroundFull" style="z-index: 2;">
+        <img src="background_without_balloons.png" alt="Full background">
+      </div>
+
+      <!-- z-index 10: Balloons -->
+      <div class="layer pop-up" id="balloons" style="z-index: 10; top: -5%; left: 5%;">
+        <img src="balloons.png" alt="Balloons">
+      </div>
+
+      <!-- z-index 11: Ash on the table -->
+      <div class="character pop-up" id="ash" style="z-index: 11; top: 55%; left: 50%; width: 11%;">
+        <img src="processed_ash.png" alt="Ash">
+      </div>
+
+      <!-- z-index 15: Milan on top of bookshelf -->
+      <div class="character peek-in" id="milan" style="z-index: 15; top: 18.5%; right: 5%; width: 8%;">
+        <img src="processed_milan.png" alt="Milan">
+      </div>
+
+      <!-- z-index 3: Dani & Jason transparent -->
+      <div class="layer pop-up" id="couple" style="z-index: 3;">
+        <img src="dani_and_jason.png" alt="Dani and Jason">
+      </div>
+
+      <!-- z-index 12: Cake on the table -->
+      <div class="character pop-up" id="cake" style="z-index: 12; top: 57%; left: 28.5%; width: 18.5%;">
+        <img src="processed_cake.png" alt="Birthday Cake">
+      </div>
+
+      <!-- Blackout overlay -->
+      <div class="blackout" id="blackout"></div>
+
+      <!-- z-index 40: Candle flames -->
+      <div class="candle-flames" id="flames">
+        <div class="flame" style="left: 29.5%; top: 56.2%;"></div>
+        <div class="flame" style="left: 32%; top: 55.7%;"></div>
+        <div class="flame" style="left: 34.5%; top: 55.4%;"></div>
+        <div class="flame" style="left: 37.8%; top: 55.6%;"></div>
+        <div class="flame" style="left: 40.3%; top: 56%;"></div>
+      </div>
+
+      <!-- z-index 13: Penny on the table -->
+      <div class="character pop-up" id="penny" style="z-index: 13; top: 53%; left: 65%; width: 9%;">
+        <img src="processed_penny.png" alt="Penny">
+      </div>
+
+      <!-- Navigation arrows -->
+      <div class="nav-arrow left" id="navLeft" onclick="goToCover()">&#8249;</div>
+      <div class="nav-arrow right" id="navRight" onclick="goToMessage()">&#8250;</div>
+
+    </div>
+  </div>
+
+  <!-- PAGE 2: Message -->
+  <div class="page message-page page-right" id="pageMessage">
+    <div class="message">
+      <h2>Happy <span class="strike">35th</span> tenth edition of your 26th birthday Dani!</h2>
+      <p>Today is one of my favorite days because it's a celebration of you.</p>
+      <p>The person you want on your team for a game of cuarenta because your competitive spirit and your cunning strategy is hard to beat — but your kindness to throw a game to help someone out is the real winning move.</p>
+      <p>The person who shares their keto guagua de pan knowing they can't share their partner's. The person who takes leftover bread with them to share with the dogs on the street. The person who goes on a hike to accommodate others when she'd rather be relaxing at home.</p>
+      <p>You are an inspiration in the way that you can jump into any challenge and find a way to succeed. You are one of the strongest people I know and you continue to amaze me.</p>
+      <p>You look after your family and make sure they get all the support, care, and love they need. You show up for women in need in their most difficult moments. Your heart is so big (I don't know how something so big fits in such a small package) and the world is so lucky to have you in it.</p>
+      <p>You are special and I hope that all the good you put into the world comes back to you and more!</p>
+      <p style="text-align: center; margin-top: 1.5rem;">Happy birthday Dani! 🎂</p>
+      <p style="text-align: center; margin-top: 1.5rem; font-style: italic;">Love,<br>Jason</p>
+    </div>
+    <div class="nav-arrow left visible" style="position: fixed;" onclick="goToCard()">&#8249;</div>
+  </div>
+
+</div>
+
+<script>
+  let animationComplete = false;
+  let cardInitialHTML = null;
+
+  // Save initial card HTML on first load
+  document.addEventListener('DOMContentLoaded', () => {
+    cardInitialHTML = document.getElementById('card').innerHTML;
+  });
+
+  function resetCard() {
+    // Restore the card to its initial state
+    document.getElementById('card').innerHTML = cardInitialHTML;
+    cardStarted = false;
+    animationComplete = false;
+  }
+
+  function goToCover() {
+    document.getElementById('pageCover').className = 'page cover-page page-center';
+    document.getElementById('pageCard').className = 'page page-right';
+    document.getElementById('pageMessage').className = 'page page-right';
+    // Reset after slide-out transition completes
+    setTimeout(resetCard, 600);
+  }
+
+  function goToCard() {
+    document.getElementById('pageCover').className = 'page cover-page page-left';
+    document.getElementById('pageCard').className = 'page page-center';
+    document.getElementById('pageMessage').className = 'page page-right';
+    // If coming back from message page, reset first then start
+    if (cardStarted) {
+      resetCard();
+      setTimeout(startCard, 100);
+    } else {
+      startCard();
+    }
+  }
+
+  function goToMessage() {
+    document.getElementById('pageCover').className = 'page cover-page page-left';
+    document.getElementById('pageCard').className = 'page page-left';
+    document.getElementById('pageMessage').className = 'page message-page page-center';
+  }
+
+  let cardStarted = false;
+  function startCard() {
+    if (cardStarted) return;
+    cardStarted = true;
+
+    // Background fades in first
+    setTimeout(() => {
+      document.getElementById('background').classList.add('show');
+    }, 300);
+
+    // Balloons, couple, and cake start unfolding together
+    setTimeout(() => {
+      const balloons = document.getElementById('balloons');
+      balloons.style.animationDuration = '1s';
+      balloons.classList.add('show');
+
+      const couple = document.getElementById('couple');
+      couple.style.animationDuration = '1s';
+      couple.classList.add('show');
+
+      const cake = document.getElementById('cake');
+      cake.style.animationDuration = '1.2s';
+      cake.classList.add('show');
+    }, 1000);
+
+    // Instant swap just before couple finishes folding in
+    setTimeout(() => {
+      document.getElementById('backgroundFull').style.visibility = 'visible';
+      document.getElementById('couple').style.display = 'none';
+      document.getElementById('cake').style.display = 'none';
+    }, 1650);
+
+    // Cats start folding in after swap
+    setTimeout(() => {
+      [
+        { id: 'penny', duration: 1.8 },
+        { id: 'ash', duration: 2.2 },
+        { id: 'milan', duration: 2.5 },
+      ].forEach(({ id, duration }) => {
+        const el = document.getElementById(id);
+        el.style.animationDuration = duration + 's';
+        el.classList.add('show');
+      });
+    }, 2000);
+
+    // After everything settles, cut to black
+    const blackoutTime = 5000;
+    setTimeout(() => {
+      document.getElementById('blackout').classList.add('dark');
+    }, blackoutTime);
+
+    // Light candles one at a time in the dark: 3rd, 1st, 5th, 2nd, 4th
+    const flameOrder = [2, 0, 4, 1, 3];
+    const flames = document.querySelectorAll('.flame');
+    const candleStart = blackoutTime + 1000;
+    flameOrder.forEach((idx, i) => {
+      setTimeout(() => {
+        flames[idx].classList.add('lit');
+      }, candleStart + i * 800);
+    });
+
+    // Hold on the candles a moment after the last one lights, then reveal
+    const revealTime = candleStart + (flameOrder.length - 1) * 800 + 1500;
+    setTimeout(() => {
+      document.getElementById('blackout').classList.remove('dark');
+      document.getElementById('blackout').classList.add('reveal');
+    }, revealTime);
+
+    // Ash + balloons float away — 5 seconds after the scene is revealed
+    const floatTime = revealTime + 5000;
+    setTimeout(() => {
+      ['ash', 'balloons'].forEach(id => {
+        const el = document.getElementById(id);
+        el.classList.remove('pop-up', 'show');
+        el.style.opacity = '1';
+        el.style.transform = 'translateY(0)';
+        void el.offsetHeight;
+        el.classList.add('floating');
+      });
+    }, floatTime);
+
+    // After float completes (3s), Ash falls back down
+    const fallTime = floatTime + 3500;
+    setTimeout(() => {
+      const ash = document.getElementById('ash');
+      ash.classList.remove('floating');
+      ash.style.top = '85%';
+      ash.style.left = '30%';
+      ash.style.width = '10%';
+      ash.style.zIndex = '25';
+      void ash.offsetHeight;
+      ash.classList.add('falling');
+    }, fallTime);
+
+    // Extinguish flames as Ash passes over the cake
+    setTimeout(() => {
+      document.querySelectorAll('.flame').forEach((f, i) => {
+        setTimeout(() => f.classList.add('out'), i * 100);
+      });
+    }, fallTime + 1050);
+
+    // Show navigation arrows after Ash lands (fall is 2s)
+    setTimeout(() => {
+      document.getElementById('navLeft').classList.add('visible');
+      document.getElementById('navRight').classList.add('visible');
+      animationComplete = true;
+    }, fallTime + 2500);
+  }
+</script>
+
+</body>
+</html>

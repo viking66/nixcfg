@@ -129,6 +129,14 @@ in
     };
   };
 
+  # Dani's birthday card (one-off static site)
+  services.caddy.virtualHosts."dani-birthday-2026.gordula.com" = {
+    extraConfig = ''
+      root * ${flakeRoot}/static/dani-birthday-2026
+      file_server
+    '';
+  };
+
   # Static user for my-list (needed so Litestream can share DB access)
   users.users.my-list = {
     isSystemUser = true;
