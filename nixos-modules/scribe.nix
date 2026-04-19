@@ -271,6 +271,12 @@ in
         openssh       # for git over SSH if we ever want it; not required
       ];
 
+      # Claude Code's installer drops a generic-linux dynamically-linked
+      # binary into the user's HOME. NixOS's pure store has no
+      # /lib64/ld-linux-x86-64.so.2, so these binaries won't run without
+      # a stub dynamic linker. nix-ld provides one.
+      programs.nix-ld.enable = true;
+
       # The scribe user. Home lives on the persistent volume so Claude's
       # self-installed binary, npm cache, and channel pairing state survive
       # reboots.
