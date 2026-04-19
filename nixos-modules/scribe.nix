@@ -170,6 +170,15 @@ in
     '';
   };
 
+  # Auto-restart the VM when its guest config changes. microvm.nix rebuilds
+  # the VM image on config change but does NOT restart running VMs by
+  # default. Tying restartTriggers to the guest toplevel makes
+  # switch-to-configuration (what comin runs) restart us automatically —
+  # critical when Jason deploys from his phone with no SSH on hand.
+  systemd.services."microvm@${vmName}".restartTriggers = [
+    config.microvm.vms."${vmName}".config.config.system.build.toplevel
+  ];
+
   # ------------------------------------------------------------------------
   # The VM itself
   # ------------------------------------------------------------------------
@@ -422,6 +431,16 @@ in
           for subdir in skills agents commands; do
             ln -sfn "/run/scribe-bybren/$subdir" "$HOME/.claude/$subdir"
           done
+
+          # Materialize the Telegram plugin's .env file from the bot token
+          # in our service environment. The plugin requires this file to
+          # exist even though the env var is set — "takes precedence" in the
+          # upstream docs is misleading. Written every boot so the token
+          # stays in sync with sops.
+          mkdir -p "$HOME/.claude/channels/telegram"
+          install -m 0600 /dev/null "$HOME/.claude/channels/telegram/.env"
+          printf 'TELEGRAM_BOT_TOKEN=%s\n' "$TELEGRAM_BOT_TOKEN" \
+            > "$HOME/.claude/channels/telegram/.env"
 
           # Initialize the vault if not present.
           vault="/var/lib/scribe/vault"
