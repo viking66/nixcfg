@@ -288,6 +288,7 @@ in
       # scribe user's HOME on the persistent volume so it can self-update.
       environment.systemPackages = with pkgs; [
         nodejs_20     # runtime for claude and afterwriting
+        bun           # required by the claude-plugins-official Telegram plugin's .mcp.json
         git
         cacert
         curl
