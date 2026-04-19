@@ -113,16 +113,20 @@ in
     externalInterface = wanInterface;
   };
 
-  # Firewall: drop NEW connections initiated by the guest to the host. We
-  # must use conntrack state — a blanket DROP would also break replies to
-  # host-initiated flows (ping, admin SSH if we enable it later, etc.). Guest
-  # can still egress to the WAN via NAT (FORWARD chain, unaffected). Guest
-  # CANNOT reach host services (my-list, caddy, jellyfin, etc.).
+  # Firewall:
+  #   1. Drop NEW connections from guest to host (guest can't reach host
+  #      services — my-list, caddy, jellyfin, etc.).
+  #   2. Drop NEW connections from the WAN into the guest subnet (the
+  #      guest's sshd on 10.233.2.2 is not reachable from the internet).
+  # Both use conntrack state — reply traffic (ESTABLISHED/RELATED) flows
+  # freely so host-initiated admin SSH to the guest works.
   networking.firewall.extraCommands = ''
     iptables -I INPUT -i ${bridge} -m conntrack --ctstate NEW -j DROP
+    iptables -I FORWARD -i ${wanInterface} -d ${subnet} -m conntrack --ctstate NEW -j DROP
   '';
   networking.firewall.extraStopCommands = ''
     iptables -D INPUT -i ${bridge} -m conntrack --ctstate NEW -j DROP 2>/dev/null || true
+    iptables -D FORWARD -i ${wanInterface} -d ${subnet} -m conntrack --ctstate NEW -j DROP 2>/dev/null || true
   '';
 
   # ------------------------------------------------------------------------
@@ -212,9 +216,25 @@ in
         };
       };
 
-      # No public SSH on the guest; no open ports at all (Claude dials out to
-      # Telegram and the Anthropic API, nothing dials in).
+      # sshd on the guest so Jason can attach to the tmux session (first-run
+      # Telegram pairing, ad-hoc debugging). The host-side FORWARD drop above
+      # keeps this unreachable from the public internet — only gordula itself
+      # can connect to 10.233.2.2:22.
+      services.openssh = {
+        enable = true;
+        openFirewall = true;
+        settings = {
+          PermitRootLogin = "no";
+          PasswordAuthentication = false;
+        };
+      };
       networking.firewall.enable = true;
+
+      # Pubkey login for the scribe user — same ed25519 key gordula already
+      # trusts for jason.
+      users.users.scribe.openssh.authorizedKeys.keys = [
+        (builtins.readFile (flakeRoot + "/secrets/id_ed25519.pub"))
+      ];
 
       # Packages inside the guest. Claude Code itself is NOT pinned here —
       # it's installed by ExecStartPre via its native installer into the
