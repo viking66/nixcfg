@@ -33,8 +33,11 @@ let
     hash = "sha256-+Rg1Oo5gw6/TYxtBvd0zbPosMaqcZQnfMT8ZlkM8atE=";
   };
 
+  # Must invoke the same systemctl path the sudoers rule allows
+  # (/run/current-system/sw/bin/systemctl), not the /nix/store/ path ${pkgs.systemd}
+  # would resolve to — sudo matches on command string, not resolved symlink.
   scribeRestart = pkgs.writeShellScriptBin "scribe-restart" ''
-    exec sudo -n ${pkgs.systemd}/bin/systemctl restart scribe.service
+    exec sudo -n /run/current-system/sw/bin/systemctl restart scribe.service
   '';
 in
 {
