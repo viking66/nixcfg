@@ -283,10 +283,13 @@ in
         wants = [ "network-online.target" ];
 
         # systemd reads EnvironmentFile as root, then drops to scribe.
+        # Do NOT set WorkingDirectory — the vault path is created by
+        # preStart, and a missing WorkingDirectory fails the service with
+        # "Result: resources" before preStart runs. tmux gets -c explicitly
+        # below to make claude start in the vault.
         serviceConfig = {
           User = "scribe";
           Group = "scribe";
-          WorkingDirectory = "/var/lib/scribe/vault";
           EnvironmentFile = "/run/scribe-secrets/env";
           Restart = "always";
           RestartSec = 10;
@@ -387,7 +390,8 @@ in
           export HOME=/var/lib/scribe/home
           # Clean up any stale server from a prior crash.
           ${pkgs.tmux}/bin/tmux -L scribe kill-server 2>/dev/null || true
-          ${pkgs.tmux}/bin/tmux -L scribe new-session -d -s scribe -x 120 -y 40 \
+          ${pkgs.tmux}/bin/tmux -L scribe new-session -d -s scribe \
+            -c /var/lib/scribe/vault -x 120 -y 40 \
             "$HOME/.local/bin/claude --channels plugin:telegram@claude-plugins-official --dangerously-skip-permissions"
           # Block until claude exits (tmux session goes away).
           while ${pkgs.tmux}/bin/tmux -L scribe has-session -t scribe 2>/dev/null; do
