@@ -110,18 +110,16 @@ in
     externalInterface = wanInterface;
   };
 
-  # Firewall: drop anything from the guest subnet destined at the host's
-  # bridge IP. Guest can only egress via NAT to the WAN; it cannot reach
-  # other gordula services. allowedUDPPorts/TCPPorts inherited from host
-  # config do NOT apply to the bridge because we do not trustedInterfaces it.
+  # Firewall: drop NEW connections initiated by the guest to the host. We
+  # must use conntrack state — a blanket DROP would also break replies to
+  # host-initiated flows (ping, admin SSH if we enable it later, etc.). Guest
+  # can still egress to the WAN via NAT (FORWARD chain, unaffected). Guest
+  # CANNOT reach host services (my-list, caddy, jellyfin, etc.).
   networking.firewall.extraCommands = ''
-    # Drop any traffic from the guest subnet to the host's bridge-facing IP.
-    iptables -I INPUT -i ${bridge} -d ${hostIP} -j DROP
-    # Allow DNS to host if we ever run a resolver — currently we do not;
-    # guest uses a public resolver (see guest config).
+    iptables -I INPUT -i ${bridge} -m conntrack --ctstate NEW -j DROP
   '';
   networking.firewall.extraStopCommands = ''
-    iptables -D INPUT -i ${bridge} -d ${hostIP} -j DROP 2>/dev/null || true
+    iptables -D INPUT -i ${bridge} -m conntrack --ctstate NEW -j DROP 2>/dev/null || true
   '';
 
   # ------------------------------------------------------------------------
