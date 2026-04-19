@@ -1,0 +1,19 @@
+#!/bin/sh
+# Regenerate screenplay.pdf for any screenplay whose .fountain file is staged.
+# Re-stages the regenerated PDF so it lands in the same commit.
+
+set -e
+
+changed=$(git diff --cached --name-only -- 'screenplays/*/screenplay.fountain' || true)
+
+if [ -z "$changed" ]; then
+  exit 0
+fi
+
+echo "$changed" | while IFS= read -r fountain; do
+  [ -f "$fountain" ] || continue
+  dir=$(dirname "$fountain")
+  pdf="$dir/screenplay.pdf"
+  afterwriting --source "$fountain" --pdf "$pdf" --overwrite
+  git add "$pdf"
+done

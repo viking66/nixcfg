@@ -14,6 +14,7 @@ in
     inputs.sops-nix.nixosModules.sops
     (flakeRoot + "/nixos-modules/common.nix")
     (flakeRoot + "/nixos-modules/media.nix")
+    (flakeRoot + "/nixos-modules/scribe.nix")
   ];
 
   networking.hostName = "gordula";
