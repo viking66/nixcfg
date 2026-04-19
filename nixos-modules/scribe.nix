@@ -155,6 +155,18 @@ in
   # No host-side sudoers changes needed here.
   # ------------------------------------------------------------------------
 
+  # Caddy reverse proxy so Jason can reach the scribe tmux session over
+  # Tailscale from any browser (including iPhone Safari — no SSH client
+  # needed). Follows the existing internal-service pattern on gordula:
+  # port on the host, reachable via `http://gordula:7681`, blocked from
+  # the public internet because 7681 isn't in networking.firewall.allowedTCPPorts.
+  services.caddy.virtualHosts.":7681" = {
+    extraConfig = ''
+      bind 0.0.0.0
+      reverse_proxy ${guestIP}:7681
+    '';
+  };
+
   # ------------------------------------------------------------------------
   # The VM itself
   # ------------------------------------------------------------------------
@@ -248,7 +260,10 @@ in
           PasswordAuthentication = false;
         };
       };
-      networking.firewall.enable = true;
+      networking.firewall = {
+        enable = true;
+        allowedTCPPorts = [ 7681 ];  # ttyd web terminal (reachable only via host-side Caddy)
+      };
 
       # Pubkey login for the scribe user — same ed25519 key gordula already
       # trusts for jason.
@@ -265,6 +280,7 @@ in
         cacert
         curl
         tmux
+        ttyd          # web terminal for reaching the tmux from a browser
         scribeRestart
         coreutils
         gnused
@@ -309,6 +325,28 @@ in
             options = [ "NOPASSWD" ];
           }];
         }];
+      };
+
+      # ttyd — serves the scribe tmux session over HTTP on port 7681. Reached
+      # only via host-side Caddy on gordula port 7681 (Tailscale-gated by
+      # host firewall). Writable (can type into Claude's TUI).
+      systemd.services.ttyd-scribe = {
+        description = "ttyd web terminal attached to the scribe tmux session";
+        wantedBy = [ "multi-user.target" ];
+        after = [ "scribe.service" ];
+        serviceConfig = {
+          User = "scribe";
+          Group = "scribe";
+          Restart = "always";
+          RestartSec = 5;
+        };
+        script = ''
+          exec ${pkgs.ttyd}/bin/ttyd \
+            --port 7681 \
+            --interface 0.0.0.0 \
+            --writable \
+            ${pkgs.tmux}/bin/tmux -S /var/lib/scribe/tmux.sock attach -t scribe
+        '';
       };
 
       # The main service.

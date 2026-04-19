@@ -228,6 +228,12 @@ in
             <a href="http://gordula:6767">Bazarr<span>Subtitles</span></a>
           </div>
         </div>
+        <div class="section">
+          <h2>Scribe</h2>
+          <div class="links">
+            <a href="http://gordula:7681">Terminal<span>Claude TUI</span></a>
+          </div>
+        </div>
       </body>
       </html>` 200
     '';
