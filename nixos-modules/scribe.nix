@@ -36,8 +36,12 @@ let
   # Must invoke the same systemctl path the sudoers rule allows
   # (/run/current-system/sw/bin/systemctl), not the /nix/store/ path ${pkgs.systemd}
   # would resolve to — sudo matches on command string, not resolved symlink.
+  # --no-block because when Claude itself calls scribe-restart, the sudo
+  # process is in scribe.service's cgroup; a blocking systemctl restart
+  # would wait for its own cgroup to be killed, hanging forever. --no-block
+  # queues the request with systemd and returns immediately.
   scribeRestart = pkgs.writeShellScriptBin "scribe-restart" ''
-    exec sudo -n /run/current-system/sw/bin/systemctl restart scribe.service
+    exec sudo -n /run/current-system/sw/bin/systemctl --no-block restart scribe.service
   '';
 in
 {
@@ -329,12 +333,14 @@ in
 
       # Narrow sudoers rule: the scribe user can restart its own service
       # without a password. That is the ONLY thing it can do as root.
+      # Command must match EXACTLY what scribe-restart invokes — sudo does
+      # not do path resolution, so the --no-block flag is part of the match.
       security.sudo = {
         enable = true;
         extraRules = [{
           users = [ "scribe" ];
           commands = [{
-            command = "/run/current-system/sw/bin/systemctl restart scribe.service";
+            command = "/run/current-system/sw/bin/systemctl --no-block restart scribe.service";
             options = [ "NOPASSWD" ];
           }];
         }];
