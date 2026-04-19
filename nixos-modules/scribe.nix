@@ -259,6 +259,8 @@ in
         home = "/var/lib/scribe/home";
         createHome = true;
         uid = 2000;
+        # journal read so we can debug scribe.service over SSH without sudo.
+        extraGroups = [ "systemd-journal" ];
       };
       users.groups.scribe.gid = 2000;
 
