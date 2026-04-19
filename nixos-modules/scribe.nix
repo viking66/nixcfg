@@ -104,6 +104,9 @@ in
   # IPv4 forwarding + MASQUERADE for guest egress to the WAN.
   boot.kernel.sysctl."net.ipv4.ip_forward" = 1;
 
+  # Kernel modules needed for VSOCK admin channel into the guest.
+  boot.kernelModules = [ "vhost_vsock" ];
+
   networking.nat = {
     enable = true;
     internalInterfaces = [ bridge ];
