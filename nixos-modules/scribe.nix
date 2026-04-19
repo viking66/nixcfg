@@ -284,6 +284,14 @@ in
       };
       users.groups.scribe.gid = 2000;
 
+      # The persistent volume mounts at /var/lib/scribe owned by root
+      # (fresh ext4 default). preStart runs as scribe and needs to write
+      # there. Chown on every boot via tmpfiles — safe because it only
+      # touches the top-level dir, not files scribe created inside.
+      systemd.tmpfiles.rules = [
+        "d /var/lib/scribe 0755 scribe scribe -"
+      ];
+
       # Narrow sudoers rule: the scribe user can restart its own service
       # without a password. That is the ONLY thing it can do as root.
       security.sudo = {
