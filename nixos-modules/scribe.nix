@@ -416,21 +416,28 @@ in
         '';
 
         # Claude Code's --channels flag crashes headlessly with no pty
-        # (anthropics/claude-code#40726). We run it inside a detached tmux
-        # session to give it a real pty, then block until the session ends
-        # so systemd tracks the lifetime correctly. Attach for debugging
-        # or first-run pairing with:
-        #   machinectl shell scribe@     (or SSH into the VM if enabled)
-        #   sudo -u scribe tmux -L scribe attach -t scribe
+        # (anthropics/claude-code#40726). Run it inside a detached tmux
+        # session to give it a real pty. The service has PrivateTmp=true
+        # so we place the socket under the persistent volume instead of
+        # /tmp — that way an admin SSH session can attach:
+        #   ssh -J jason@gordula scribe@10.233.2.2
+        #   tmux -S /var/lib/scribe/tmux.sock attach -t scribe
+        # (Detach with Ctrl-b d; Claude keeps running.)
         script = ''
           export HOME=/var/lib/scribe/home
-          # Clean up any stale server from a prior crash.
-          ${pkgs.tmux}/bin/tmux -L scribe kill-server 2>/dev/null || true
-          ${pkgs.tmux}/bin/tmux -L scribe new-session -d -s scribe \
+          sock=/var/lib/scribe/tmux.sock
+          # Clean up any stale socket/server from a prior crash.
+          ${pkgs.tmux}/bin/tmux -S "$sock" kill-server 2>/dev/null || true
+          rm -f "$sock"
+          ${pkgs.tmux}/bin/tmux -S "$sock" new-session -d -s scribe \
             -c /var/lib/scribe/vault -x 120 -y 40 \
             "$HOME/.local/bin/claude --channels plugin:telegram@claude-plugins-official --dangerously-skip-permissions"
+          # Make the socket world-read for the scribe group so interactive
+          # attaches over SSH can reach it (the service user and SSH user
+          # are both scribe so this is purely belt-and-suspenders).
+          chmod 660 "$sock" 2>/dev/null || true
           # Block until claude exits (tmux session goes away).
-          while ${pkgs.tmux}/bin/tmux -L scribe has-session -t scribe 2>/dev/null; do
+          while ${pkgs.tmux}/bin/tmux -S "$sock" has-session -t scribe 2>/dev/null; do
             sleep 5
           done
         '';
