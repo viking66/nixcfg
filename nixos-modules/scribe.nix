@@ -48,27 +48,47 @@ in
     "scribe/github-pat" = {};
   };
 
-  # Render the three secrets into a single EnvironmentFile at a stable path
-  # that we virtiofs-share into the guest. systemd reads EnvironmentFile as
-  # root before dropping privileges, so the scribe user in the guest never
-  # needs read access to the file itself.
+  # Render the three secrets into a single EnvironmentFile. sops-nix
+  # renders templates at /run/secrets/rendered/<name> as real files; a
+  # .path override would create a SYMLINK to that, which breaks across
+  # virtiofs (the symlink's target is a host-side path the guest can't
+  # resolve). Instead we render at the default location and materialize
+  # a real copy at the shared path via a oneshot below.
   sops.templates."scribe-env" = {
     content = ''
       CLAUDE_CODE_OAUTH_TOKEN=${config.sops.placeholder."scribe/claude-code-oauth-token"}
       TELEGRAM_BOT_TOKEN=${config.sops.placeholder."scribe/telegram-bot-token"}
       GITHUB_TOKEN=${config.sops.placeholder."scribe/github-pat"}
     '';
-    path = "/var/lib/scribe-secrets/env";
     mode = "0440";
     owner = "root";
     group = "root";
   };
 
-  # Dedicated directory for the env file so the virtiofs share exposes nothing
-  # else. Root-only on the host.
+  # Dedicated directory for the materialized env file so the virtiofs share
+  # exposes nothing else. Root-only on the host.
   systemd.tmpfiles.rules = [
     "d /var/lib/scribe-secrets 0700 root root -"
   ];
+
+  # Copy the rendered template to the shared location as a real file so
+  # virtiofs can serve its bytes to the guest (symlinks into /run/secrets/
+  # don't resolve inside the VM). Ordered before the microvm so the file
+  # is present when qemu starts. Re-runs at boot and when sops changes.
+  systemd.services.scribe-env-materialize = {
+    description = "Materialize scribe env file at the VM's virtiofs share";
+    wantedBy = [ "microvm@scribe.service" ];
+    before = [ "microvm@scribe.service" ];
+    serviceConfig = {
+      Type = "oneshot";
+      RemainAfterExit = true;
+    };
+    script = ''
+      install -D -m 0440 -o root -g root \
+        /run/secrets/rendered/scribe-env \
+        /var/lib/scribe-secrets/env
+    '';
+  };
 
   # ------------------------------------------------------------------------
   # Host networking: bridge + NAT + egress-only firewall
