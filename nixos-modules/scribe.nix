@@ -146,6 +146,10 @@ in
         # microvm.nix warns that exactly 2048 MiB causes QEMU to hang; pick a
         # value that isn't a power of 2. See microvm-nix/microvm.nix#171.
         mem = 3072;
+        # VSOCK admin channel. Host uses `microvm -s scribe` to SSH in via
+        # virtio-vsock (CID 3; CIDs 0-2 are reserved by Linux). Independent
+        # of the network — works even if the bridge is misconfigured.
+        vsock.cid = 3;
 
         # Persistent volume for /var/lib/scribe (vault + Claude HOME +
         # npm cache + Telegram pairing state).
