@@ -49,6 +49,16 @@
 
     home.file = {
       ".ssh/gh_id_ed25519.pub".source = flakeRoot + "/secrets/gh_id_ed25519.pub";
+
+      # Work git identity override — activated by the `includeIf` block at
+      # the bottom of dotfiles/git.config, which triggers on any remote URL
+      # matching `**vesal-security/**`. Only exists on this host, so the
+      # includeIf is a no-op on havoc. Matches both `git@github.com:...`
+      # and the `github-work` SSH alias (any URL containing vesal-security/).
+      ".config/git/config-vesal".text = ''
+        [user]
+            email = jason@vesal.io
+      '';
     };
 
     home.packages = [ pkgs.devenv ];
