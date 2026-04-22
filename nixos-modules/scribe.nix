@@ -221,26 +221,17 @@ in
         # Contains only /var/lib/scribe-secrets/env. The guest mounts it at
         # /run/scribe-secrets/. systemd reads EnvironmentFile= as root (in
         # the guest) before dropping to the scribe user.
+        #
+        # NOTE: we deliberately do NOT share the vault skeleton or bybren
+        # bundle from host /nix/store via virtiofs — those paths can be
+        # garbage-collected out from under a long-running VM, leaving the
+        # guest staring at an empty share. Instead they're baked into the
+        # guest's own EROFS store image via `environment.etc` below.
         shares = [
           {
             source = "/var/lib/scribe-secrets";
             mountPoint = "/run/scribe-secrets";
             tag = "scribe-secrets";
-            proto = "virtiofs";
-          }
-          # Read-only share of the vault skeleton so the guest can seed a
-          # fresh repo on first boot without needing network at that moment.
-          {
-            source = toString skeletonDir;
-            mountPoint = "/run/scribe-skeleton";
-            tag = "scribe-skeleton";
-            proto = "virtiofs";
-          }
-          # Pinned bybren-llc screenwriting bundle: skills/, agents/, commands/.
-          {
-            source = "${bybrenBundle}/.claude";
-            mountPoint = "/run/scribe-bybren";
-            tag = "scribe-bybren";
             proto = "virtiofs";
           }
         ];
@@ -305,6 +296,12 @@ in
         gnused
         openssh       # for git over SSH if we ever want it; not required
       ];
+
+      # Vault skeleton and bybren bundle, baked into the guest's own store
+      # image. Referenced via /etc/scribe-skeleton and /etc/scribe-bybren
+      # (symlinks into the guest's /nix/store). Immune to host-side GC.
+      environment.etc."scribe-skeleton".source = skeletonDir;
+      environment.etc."scribe-bybren".source = "${bybrenBundle}/.claude";
 
       # Claude Code's installer drops a generic-linux dynamically-linked
       # binary into the user's HOME. NixOS's pure store has no
@@ -434,11 +431,12 @@ in
 
           # Symlink the bybren-llc bundle subdirs (skills, agents, commands)
           # into the user-level ~/.claude/ so they apply to every Claude
-          # session. Each is an RO symlink into /nix/store via virtiofs —
-          # upgrades happen by bumping the bybrenBundle rev in scribe.nix.
+          # session. These are RO symlinks into the guest's own /nix/store
+          # via /etc/scribe-bybren — upgrades happen by bumping the
+          # bybrenBundle rev in scribe.nix, which rebuilds the VM image.
           mkdir -p "$HOME/.claude"
           for subdir in skills agents commands; do
-            ln -sfn "/run/scribe-bybren/$subdir" "$HOME/.claude/$subdir"
+            ln -sfn "/etc/scribe-bybren/$subdir" "$HOME/.claude/$subdir"
           done
 
           # Materialize the Telegram plugin's .env file from the bot token
@@ -462,8 +460,8 @@ in
             # Try to pull in case the repo already has content.
             if ! ${pkgs.git}/bin/git pull origin main 2>/dev/null; then
               # Empty repo: seed from skeleton.
-              cp -r /run/scribe-skeleton/. "$vault/"
-              install -m 0755 /run/scribe-skeleton/pre-commit "$vault/.git/hooks/pre-commit"
+              cp -r /etc/scribe-skeleton/. "$vault/"
+              install -m 0755 /etc/scribe-skeleton/pre-commit "$vault/.git/hooks/pre-commit"
               ${pkgs.git}/bin/git add -A
               ${pkgs.git}/bin/git -c user.name=scribe -c user.email=scribe@gordula.local commit -m "initial vault skeleton"
               ${pkgs.git}/bin/git push -u origin main
@@ -472,7 +470,7 @@ in
 
           # Always refresh the pre-commit hook from the skeleton (in case
           # we update it in the nixcfg).
-          install -m 0755 /run/scribe-skeleton/pre-commit "$vault/.git/hooks/pre-commit"
+          install -m 0755 /etc/scribe-skeleton/pre-commit "$vault/.git/hooks/pre-commit"
 
           # Git identity.
           ${pkgs.git}/bin/git -C "$vault" config user.name "scribe"
