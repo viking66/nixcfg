@@ -8,7 +8,8 @@ setopt interactive_comments
 alias ls='ls --color=auto'
 alias ll='ls -alF'
 alias bat='bat --theme=Nord'
-
+alias cleanpaste='pbpaste | sed "s/[▏▕│┃]//g" | sed "s/[[:space:]]*$//" | pbcopy'
+alias oneline='pbpaste | sed "s/[▏▕│┃]//g" | sed "s/^[[:space:]]*//;s/[[:space:]]*$//" | awk "BEGIN{RS=\"\"} {gsub(/\n/,\" \"); print}" | pbcopy'
 
 autoload -Uz compinit && compinit
 
