@@ -489,11 +489,13 @@ in
           ["obsidian-local-rest-api"]
           EOF
 
-          # Suppress the "confirm file delete" dialog. Trust is NOT set here
-          # despite what some older writeups suggest — trustedVault at the
-          # per-vault level is not a real field.
+          # Per-vault app.json: suppress file-delete dialog AND mark the vault
+          # as trusted. Setting `trustedVault: true` here is documented to
+          # matter in 1.12+ in addition to the user-scope trustedVaults map
+          # (belt and suspenders — one of the two should bypass the "Trust
+          # author and enable plugins" dialog).
           cat > "$vault/.obsidian/app.json" <<'EOF'
-          { "promptDelete": false }
+          { "promptDelete": false, "trustedVault": true }
           EOF
 
           # Seed ~/.config/obsidian/obsidian.json so Obsidian:
@@ -525,10 +527,12 @@ in
           rm -f "$HOME/.config/obsidian/Singleton"* 2>/dev/null || true
         '';
         script = ''
+          # Match the rup12.net-verified pattern: just --no-sandbox, no GPU
+          # flags. Add --enable-logging=stderr so renderer errors surface in
+          # journald instead of being swallowed by Electron.
           exec ${pkgs.obsidian}/bin/obsidian \
             --no-sandbox \
-            --disable-gpu \
-            --disable-software-rasterizer \
+            --enable-logging=stderr --v=1 \
             /var/lib/athena/vault
         '';
       };
