@@ -372,6 +372,13 @@ in
       # Claude Code binary dropped into HOME — same pattern as scribe.
       programs.nix-ld.enable = true;
 
+      # Provide libGL / Mesa's software renderer (llvmpipe) so Electron's
+      # ANGLE=default path actually has a GL implementation to talk to —
+      # xorg-server's +extension GLX is just the protocol handshake; the
+      # actual GL comes from this. Without it we get "GLX is not present"
+      # because there's no libGL.
+      hardware.graphics.enable = true;
+
       environment.systemPackages = with pkgs; [
         nodejs_20
         bun
@@ -534,13 +541,13 @@ in
           rm -f "$HOME/.config/obsidian/Singleton"* 2>/dev/null || true
         '';
         script = ''
-          # Modern Electron only accepts gl=egl-angle as the GL backend;
-          # swiftshader is now selected through ANGLE via --use-angle.
-          # This gives us a pure-software GL stack that doesn't need GLX
-          # to be actually implemented in the X server.
+          # With hardware.graphics.enable, libGL is available system-wide.
+          # Force Mesa's software renderer (llvmpipe) so we don't depend on
+          # GPU hardware that doesn't exist in the VM. LIBGL_ALWAYS_SOFTWARE
+          # tells Mesa to skip the DRI lookup and go straight to llvmpipe.
+          export LIBGL_ALWAYS_SOFTWARE=1
           exec ${pkgs.obsidian}/bin/obsidian \
             --no-sandbox \
-            --use-angle=swiftshader \
             --enable-logging=stderr --v=1 \
             /var/lib/athena/vault
         '';
