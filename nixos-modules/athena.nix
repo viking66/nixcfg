@@ -426,12 +426,19 @@ in
       };
 
       # ----- Xvfb -----
+      # +extension GLX enables the GLX X extension, which Electron needs
+      # even when --disable-gpu'd — its renderer still calls eglInitialize
+      # under ANGLE, which on Linux routes through GLX. Without it, the
+      # renderer can't present frames, onLayoutReady never fires, and
+      # community plugins never load. Confirmed by the
+      # "ANGLE Display::initialize error 12289: GLX is not present"
+      # errors we saw in journald.
       systemd.services.xvfb = {
         description = "Virtual framebuffer for headless Obsidian";
         wantedBy = [ "multi-user.target" ];
         serviceConfig = {
           Type = "simple";
-          ExecStart = "${pkgs.xorg-server}/bin/Xvfb :99 -screen 0 1280x1024x24 -nolisten tcp";
+          ExecStart = "${pkgs.xorg-server}/bin/Xvfb :99 -screen 0 1280x1024x24 -nolisten tcp +extension GLX +render -noreset";
           Restart = "always";
           RestartSec = 5;
         };
