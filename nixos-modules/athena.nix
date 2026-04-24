@@ -468,14 +468,19 @@ in
               "$vault/.obsidian/plugins/obsidian-local-rest-api/$f"
           done
 
-          # Write plugin config (API key from env).
+          # Write plugin config (API key from env). Field names per
+          # obsidian-local-rest-api 3.6.1 types.ts — it's insecurePort (not
+          # insecureServerPort, which I had wrong). Disable the HTTPS server
+          # to skip self-signed cert generation on first boot.
           : "''${OBSIDIAN_API_KEY:?OBSIDIAN_API_KEY not in env}"
           umask 077
           cat > "$vault/.obsidian/plugins/obsidian-local-rest-api/data.json" <<EOF
           {
             "apiKey": "$OBSIDIAN_API_KEY",
             "enableInsecureServer": true,
-            "insecureServerPort": ${toString obsidianPort}
+            "insecurePort": ${toString obsidianPort},
+            "enableSecureServer": false,
+            "bindingHost": "127.0.0.1"
           }
           EOF
 
