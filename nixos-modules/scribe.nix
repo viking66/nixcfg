@@ -498,7 +498,7 @@ in
           rm -f "$sock"
           ${pkgs.tmux}/bin/tmux -S "$sock" new-session -d -s scribe \
             -c /var/lib/scribe/vault -x 120 -y 40 \
-            "$HOME/.local/bin/claude --channels plugin:telegram@claude-plugins-official --dangerously-skip-permissions"
+            "$HOME/.local/bin/claude --model opus --channels plugin:telegram@claude-plugins-official --dangerously-skip-permissions"
           # Make the socket world-read for the scribe group so interactive
           # attaches over SSH can reach it (the service user and SSH user
           # are both scribe so this is purely belt-and-suspenders).

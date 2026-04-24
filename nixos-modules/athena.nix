@@ -180,7 +180,7 @@ let
             --property="Environment=TELEGRAM_USER_ID=''${TELEGRAM_USER_ID:-}" \
             --property="Environment=GITHUB_TOKEN=''${GITHUB_TOKEN:-}" \
             --property="WorkingDirectory=$vault" \
-            -- /var/lib/athena/home/.local/bin/claude --print --dangerously-skip-permissions \
+            -- /var/lib/athena/home/.local/bin/claude --model opus --print --dangerously-skip-permissions \
             "$(cat "$promptfile")" \
             || echo "prompt run failed for: $line" >&2
           ;;
@@ -657,7 +657,7 @@ in
           rm -f "$sock"
           ${pkgs.tmux}/bin/tmux -S "$sock" new-session -d -s athena \
             -c /var/lib/athena/vault -x 120 -y 40 \
-            "$HOME/.local/bin/claude --channels plugin:telegram@claude-plugins-official --dangerously-skip-permissions"
+            "$HOME/.local/bin/claude --model opus --channels plugin:telegram@claude-plugins-official --dangerously-skip-permissions"
           chmod 660 "$sock" 2>/dev/null || true
           while ${pkgs.tmux}/bin/tmux -S "$sock" has-session -t athena 2>/dev/null; do
             sleep 5
