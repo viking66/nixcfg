@@ -541,13 +541,16 @@ in
           rm -f "$HOME/.config/obsidian/Singleton"* 2>/dev/null || true
         '';
         script = ''
-          # With hardware.graphics.enable, libGL is available system-wide.
-          # Force Mesa's software renderer (llvmpipe) so we don't depend on
-          # GPU hardware that doesn't exist in the VM. LIBGL_ALWAYS_SOFTWARE
-          # tells Mesa to skip the DRI lookup and go straight to llvmpipe.
           export LIBGL_ALWAYS_SOFTWARE=1
+          # --disable-gpu skips the GPU init dance entirely. --in-process-gpu
+          # moves any remaining GPU work into the main process so there's no
+          # renderer-to-GPU-process handshake that can silently hang in Xvfb
+          # (the root cause of "vault opens but onLayoutReady never fires").
+          # --disable-dev-shm-usage avoids /dev/shm assumptions that don't
+          # hold with PrivateTmp.
           exec ${pkgs.obsidian}/bin/obsidian \
             --no-sandbox \
+            --disable-gpu --in-process-gpu --disable-dev-shm-usage \
             --enable-logging=stderr --v=1 \
             /var/lib/athena/vault
         '';
