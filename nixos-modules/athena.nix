@@ -534,11 +534,14 @@ in
           rm -f "$HOME/.config/obsidian/Singleton"* 2>/dev/null || true
         '';
         script = ''
-          # Match the rup12.net-verified pattern: just --no-sandbox, no GPU
-          # flags. Add --enable-logging=stderr so renderer errors surface in
-          # journald instead of being swallowed by Electron.
+          # Xvfb's +extension GLX registers the X extension name but the
+          # xorg-server package doesn't ship Mesa's GLX implementation, so
+          # Electron's ANGLE sees "GLX is not present" and the GPU process
+          # bails. Switch to Electron's bundled swiftshader — a software GL
+          # backend that doesn't depend on X-level GLX at all.
           exec ${pkgs.obsidian}/bin/obsidian \
             --no-sandbox \
+            --use-gl=swiftshader \
             --enable-logging=stderr --v=1 \
             /var/lib/athena/vault
         '';
