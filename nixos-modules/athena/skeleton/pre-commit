@@ -1,0 +1,11 @@
+#!/bin/sh
+# Safety net: refuse to commit anything that looks like a secret.
+# Scribe's equivalent hook regenerated PDFs; here we just sanity-check.
+
+set -e
+
+# Block obvious secret patterns.
+if git diff --cached --no-color | grep -qE '(sk-ant-|github_pat_|AAA[A-Za-z0-9_-]{30,}|AGE-SECRET-KEY-1|BEGIN [A-Z ]*PRIVATE KEY)'; then
+  echo "pre-commit: refusing to commit — looks like a secret in the staged diff" >&2
+  exit 1
+fi

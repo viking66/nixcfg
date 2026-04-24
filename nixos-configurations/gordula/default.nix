@@ -15,6 +15,7 @@ in
     (flakeRoot + "/nixos-modules/common.nix")
     (flakeRoot + "/nixos-modules/media.nix")
     (flakeRoot + "/nixos-modules/scribe.nix")
+    (flakeRoot + "/nixos-modules/athena.nix")
   ];
 
   networking.hostName = "gordula";

@@ -1,0 +1,7 @@
+# Obsidian's runtime state. Workspace layout, cache, undo history — all noise
+# in git. The plugin files under .obsidian/plugins/obsidian-local-rest-api/
+# come from the Nix store via symlinks at preStart, not from git.
+.obsidian/
+
+# OS cruft
+.DS_Store

@@ -234,6 +234,12 @@ in
             <a href="http://gordula:7681">Terminal<span>Claude TUI</span></a>
           </div>
         </div>
+        <div class="section">
+          <h2>Athena</h2>
+          <div class="links">
+            <a href="http://gordula:7682">Terminal<span>Second-brain TUI</span></a>
+          </div>
+        </div>
       </body>
       </html>` 200
     '';
