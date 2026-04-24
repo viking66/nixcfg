@@ -518,6 +518,7 @@ in
             "OBSIDIAN_VERIFY_SSL=false"
             "OBSIDIAN_ENABLE_CACHE=true"
             "OBSIDIAN_VAULT_NAME=athena"
+            "MCP_TRANSPORT_TYPE=stdio"
             "PATH=/var/lib/athena/home/.npm-global/bin:/run/current-system/sw/bin:/run/wrappers/bin"
             "NPM_CONFIG_PREFIX=/var/lib/athena/home/.npm-global"
           ];
