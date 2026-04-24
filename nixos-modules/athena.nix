@@ -460,6 +460,7 @@ in
           export HOME=/var/lib/athena/home
           vault=/var/lib/athena/vault
           mkdir -p "$vault/.obsidian/plugins/obsidian-local-rest-api"
+          mkdir -p "$HOME/.config/obsidian"
 
           # Symlink plugin files from the Nix store (immutable).
           for f in main.js manifest.json styles.css; do
@@ -483,10 +484,37 @@ in
           ["obsidian-local-rest-api"]
           EOF
 
-          # Suppress first-run wizards.
+          # Suppress the "confirm file delete" dialog. Trust is NOT set here
+          # despite what some older writeups suggest — trustedVault at the
+          # per-vault level is not a real field.
           cat > "$vault/.obsidian/app.json" <<'EOF'
-          { "promptDelete": false, "trustedVault": true }
+          { "promptDelete": false }
           EOF
+
+          # Seed ~/.config/obsidian/obsidian.json so Obsidian:
+          #   - knows to open our vault on launch (without this file, passing
+          #     the vault as a CLI arg isn't enough — Obsidian lands on the
+          #     vault picker)
+          #   - treats the vault as trusted (top-level `trustedVaults` map
+          #     keyed by vault id; this bypasses the "Trust author and enable
+          #     plugins" dialog we can't click headlessly)
+          if [ ! -f "$HOME/.config/obsidian/obsidian.json" ]; then
+            ts=$(date +%s)000
+            cat > "$HOME/.config/obsidian/obsidian.json" <<EOF
+          {
+            "vaults": {
+              "athena": {
+                "path": "$vault",
+                "ts": $ts,
+                "open": true
+              }
+            },
+            "trustedVaults": {
+              "athena": true
+            }
+          }
+          EOF
+          fi
 
           # Clean Electron singleton locks from prior ungraceful shutdown.
           rm -f "$HOME/.config/obsidian/Singleton"* 2>/dev/null || true
