@@ -534,14 +534,13 @@ in
           rm -f "$HOME/.config/obsidian/Singleton"* 2>/dev/null || true
         '';
         script = ''
-          # Xvfb's +extension GLX registers the X extension name but the
-          # xorg-server package doesn't ship Mesa's GLX implementation, so
-          # Electron's ANGLE sees "GLX is not present" and the GPU process
-          # bails. Switch to Electron's bundled swiftshader — a software GL
-          # backend that doesn't depend on X-level GLX at all.
+          # Modern Electron only accepts gl=egl-angle as the GL backend;
+          # swiftshader is now selected through ANGLE via --use-angle.
+          # This gives us a pure-software GL stack that doesn't need GLX
+          # to be actually implemented in the X server.
           exec ${pkgs.obsidian}/bin/obsidian \
             --no-sandbox \
-            --use-gl=swiftshader \
+            --use-angle=swiftshader \
             --enable-logging=stderr --v=1 \
             /var/lib/athena/vault
         '';
