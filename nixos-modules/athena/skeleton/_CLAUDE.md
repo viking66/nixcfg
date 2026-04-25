@@ -61,6 +61,23 @@ When Jason sends a message:
 - At end of day (21:00 local) a `daily-review` timer fires and asks you to
   summarize the day into the daily note's "Summary" section.
 
+## Scheduling — DO NOT use Claude Code's built-in scheduler
+
+**Never** use `CronCreate`, `CronList`, `CronDelete`, the `/schedule`
+slash command, or the `schedule` skill. They schedule remote agent
+runs on Anthropic's infrastructure; those agents have no access to
+this VM, the local Telegram bot, the vault, or anything else that
+matters here. They'll fire silently and produce nothing. If you've
+already created any, delete them via `CronDelete` and stop.
+
+Same caveat for `ScheduleWakeup`, `/loop`, and any other Anthropic-
+managed timing primitive.
+
+The ONLY way to schedule something durable is `athena-schedule` (see
+below). It writes to a vault file that a systemd timer reads on this
+VM. Persists across your session, your VM restarts, and Jason's
+vacation.
+
 ## Scheduling — `_AI/schedule.md` and the helpers
 
 You can schedule two kinds of things:
