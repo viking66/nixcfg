@@ -432,19 +432,16 @@ in
         "d /var/lib/athena 0755 athena athena -"
       ];
 
-      # athena user needs to restart its own service (athena-restart helper)
-      # and to stop/start/restart obsidian.service so we can iterate on
-      # Electron flags without a full deploy cycle.
+      # Narrow sudoers rule: the scribe-style `athena-restart` helper.
+      # Nothing else.
       security.sudo = {
         enable = true;
         extraRules = [{
           users = [ "athena" ];
-          commands = [
-            { command = "/run/current-system/sw/bin/systemctl --no-block restart athena.service"; options = [ "NOPASSWD" ]; }
-            { command = "/run/current-system/sw/bin/systemctl stop obsidian.service";              options = [ "NOPASSWD" ]; }
-            { command = "/run/current-system/sw/bin/systemctl start obsidian.service";             options = [ "NOPASSWD" ]; }
-            { command = "/run/current-system/sw/bin/systemctl restart obsidian.service";           options = [ "NOPASSWD" ]; }
-          ];
+          commands = [{
+            command = "/run/current-system/sw/bin/systemctl --no-block restart athena.service";
+            options = [ "NOPASSWD" ];
+          }];
         }];
       };
 
