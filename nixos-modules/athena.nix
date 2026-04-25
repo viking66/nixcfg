@@ -379,6 +379,10 @@ in
       # because there's no libGL.
       hardware.graphics.enable = true;
 
+      # Electron's IndexedDB/quota init silently fails without a system bus
+      # socket at /run/dbus/system_bus_socket. Enable it.
+      services.dbus.enable = true;
+
       environment.systemPackages = with pkgs; [
         nodejs_20
         bun
@@ -387,7 +391,15 @@ in
         curl
         tmux
         ttyd
-        xorg-server        # Xvfb lives here
+        xorg-server
+        # Electron's storage stack (IndexedDB, quota DB) needs a window
+        # manager and dbus session bus to initialize cleanly under Xvfb.
+        # xdotool is for the one-time "Turn on community plugins" click.
+        fluxbox
+        xdotool
+        wmctrl
+        xorg.xdpyinfo
+        dbus
         obsidian
         athenaRestart
         athenaNotify
@@ -437,13 +449,6 @@ in
       };
 
       # ----- Xvfb -----
-      # +extension GLX enables the GLX X extension, which Electron needs
-      # even when --disable-gpu'd — its renderer still calls eglInitialize
-      # under ANGLE, which on Linux routes through GLX. Without it, the
-      # renderer can't present frames, onLayoutReady never fires, and
-      # community plugins never load. Confirmed by the
-      # "ANGLE Display::initialize error 12289: GLX is not present"
-      # errors we saw in journald.
       systemd.services.xvfb = {
         description = "Virtual framebuffer for headless Obsidian";
         wantedBy = [ "multi-user.target" ];
@@ -455,13 +460,41 @@ in
         };
       };
 
+      # ----- Fluxbox window manager -----
+      # Bare Xvfb without a WM leaves Electron in a state where storage
+      # APIs partially fail. Following the OleksandrKucherenko pattern.
+      systemd.services.fluxbox = {
+        description = "Fluxbox window manager for headless Obsidian";
+        wantedBy = [ "multi-user.target" ];
+        after = [ "xvfb.service" ];
+        wants = [ "xvfb.service" ];
+        serviceConfig = {
+          Type = "simple";
+          User = "athena";
+          Group = "athena";
+          Environment = [ "DISPLAY=:99" "HOME=/var/lib/athena/home" ];
+          Restart = "always";
+          RestartSec = 5;
+        };
+        # Wait for Xvfb to be ready before starting WM.
+        preStart = ''
+          for i in $(seq 1 30); do
+            ${pkgs.xorg.xdpyinfo}/bin/xdpyinfo -display :99 >/dev/null 2>&1 && exit 0
+            sleep 1
+          done
+          echo "Xvfb not ready after 30s" >&2
+          exit 1
+        '';
+        script = ''exec ${pkgs.fluxbox}/bin/fluxbox'';
+      };
+
       # ----- Obsidian (headless) -----
       systemd.services.obsidian = {
         description = "Obsidian desktop (headless, serves Local REST API)";
         wantedBy = [ "multi-user.target" ];
-        after = [ "xvfb.service" "athena.service" ];  # vault needs to exist
-        wants = [ "xvfb.service" ];
-        requires = [ "xvfb.service" ];
+        after = [ "xvfb.service" "fluxbox.service" "dbus.service" "athena.service" ];
+        wants = [ "xvfb.service" "fluxbox.service" "dbus.service" ];
+        requires = [ "xvfb.service" "fluxbox.service" ];
         serviceConfig = {
           User = "athena";
           Group = "athena";
@@ -470,6 +503,7 @@ in
           Environment = [
             "DISPLAY=:99"
             "HOME=/var/lib/athena/home"
+            "LIBGL_ALWAYS_SOFTWARE=1"
           ];
           EnvironmentFile = "/run/athena-secrets/env";
         };
@@ -545,18 +579,17 @@ in
           rm -f "$HOME/.config/obsidian/Singleton"* 2>/dev/null || true
         '';
         script = ''
-          export LIBGL_ALWAYS_SOFTWARE=1
-          # --disable-gpu skips the GPU init dance entirely. --in-process-gpu
-          # moves any remaining GPU work into the main process so there's no
-          # renderer-to-GPU-process handshake that can silently hang in Xvfb
-          # (the root cause of "vault opens but onLayoutReady never fires").
-          # --disable-dev-shm-usage avoids /dev/shm assumptions that don't
-          # hold with PrivateTmp.
-          exec ${pkgs.obsidian}/bin/obsidian \
-            --no-sandbox \
-            --disable-gpu --in-process-gpu --disable-dev-shm-usage \
-            --enable-logging=stderr --v=1 \
-            /var/lib/athena/vault
+          # Wrap Obsidian in dbus-launch so the renderer has a session bus
+          # — without it, IndexedDB / quota DB init silently fails and
+          # community plugins never load. Match the flag set used by
+          # OleksandrKucherenko/mcp-obsidian-via-rest, the only known
+          # production setup that runs Obsidian + REST API truly headless.
+          exec ${pkgs.dbus}/bin/dbus-launch --exit-with-session \
+            ${pkgs.obsidian}/bin/obsidian \
+              --no-sandbox \
+              --disable-gpu --disable-dev-shm-usage \
+              --enable-logging=stderr --v=1 \
+              /var/lib/athena/vault
         '';
       };
 
