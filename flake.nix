@@ -54,6 +54,27 @@
       url = "github:microvm-nix/microvm.nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    nix-index-database = {
+      url = "github:nix-community/nix-index-database";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    # devenv pinned to v2.1 directly from upstream until nixos-unstable
+    # catches up. As of 2026-05-08 nixos-unstable still ships 2.0.6 while
+    # 2.1 was released 2026-05-05.
+    #
+    # REMOVE THIS INPUT once `pkgs.devenv.version` in the resolved nixpkgs
+    # is >= 2.1. To check after a `nix flake update`:
+    #   nix eval .#nixosConfigurations.<host>.pkgs.devenv.version
+    # or for the home-manager packages set:
+    #   nix eval nixpkgs#devenv.version --override-input nixpkgs ./flake.lock
+    # When you remove this, also revert the `home.packages` line in
+    # darwin-configurations/vesal-jason/default.nix back to `pkgs.devenv`.
+    devenv = {
+      url = "github:cachix/devenv/v2.1";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs = inputs@{ self, nixpkgs, flake-parts, ... }:

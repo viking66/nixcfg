@@ -4,6 +4,8 @@ let
   isDarwin = pkgs.stdenv.isDarwin;
 in
 {
+  imports = [ inputs.nix-index-database.homeModules.nix-index ];
+
   home = {
     username = "jason";
     homeDirectory = if isDarwin then "/Users/jason" else "/home/jason";
@@ -84,7 +86,6 @@ in
     atuin
     bat
     cargo
-    comma
     coreutils
     curl
     delta
@@ -107,6 +108,7 @@ in
 
   programs = {
     nix-index.enable = true;
+    nix-index-database.comma.enable = true;
 
     direnv = {
       enable = true;

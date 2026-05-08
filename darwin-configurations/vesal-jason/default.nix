@@ -61,7 +61,7 @@
       '';
     };
 
-    home.packages = [ pkgs.devenv ];
+    home.packages = [ inputs.devenv.packages.${pkgs.system}.devenv ];
 
     # Work-only alias
     programs.zsh.shellAliases = {
