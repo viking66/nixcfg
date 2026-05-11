@@ -36,3 +36,11 @@ command = "golangci-lint-langserver"
 
 [language-server.golangci-lint-lsp.config]
 command = ["golangci-lint", "run", "--output.json.path=stdout", "--show-stats=false", "--issues-exit-code=1"]
+
+[language-server.lean]
+command = "lake"
+args = ["serve"]
+
+[[language]]
+name = "lean"
+language-servers = ["lean"]
