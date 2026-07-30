@@ -60,19 +60,30 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    # devenv pinned to v2.1 directly from upstream until nixos-unstable
-    # catches up. As of 2026-05-08 nixos-unstable still ships 2.0.6 while
-    # 2.1 was released 2026-05-05.
+    # devenv pinned directly from upstream until nixos-unstable catches up.
+    # As of 2026-07-30 nixos-unstable still ships 2.0.6, so this input is
+    # still required.
+    #
+    # Bumped 2.1 -> 2.2 for two features the intel-app devenv wants:
+    #   - `devenv up` attaches to an already-running process manager instead of
+    #     failing, plus `devenv processes attach` / `start <name>` and a
+    #     `devenv down` shorthand.
+    #   - `--from` + `devenv allow` bind a directory to an out-of-tree config,
+    #     which is how intel-app worktrees can share one devenv.nix instead of
+    #     each getting a copy that silently goes stale.
+    # Breaking changes to be aware of: x86_64-darwin support was dropped (this
+    # host is aarch64), and auto-activation now keys on devenv.nix rather than
+    # devenv.yaml.
     #
     # REMOVE THIS INPUT once `pkgs.devenv.version` in the resolved nixpkgs
-    # is >= 2.1. To check after a `nix flake update`:
+    # is >= 2.2. To check after a `nix flake update`:
     #   nix eval .#nixosConfigurations.<host>.pkgs.devenv.version
     # or for the home-manager packages set:
     #   nix eval nixpkgs#devenv.version --override-input nixpkgs ./flake.lock
     # When you remove this, also revert the `home.packages` line in
     # darwin-configurations/vesal-jason/default.nix back to `pkgs.devenv`.
     devenv = {
-      url = "github:cachix/devenv/v2.1";
+      url = "github:cachix/devenv/v2.2";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };
