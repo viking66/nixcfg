@@ -70,13 +70,11 @@
       accept-flake-config = true;
     };
 
-    linux-builder = {
-      enable = true;
-      maxJobs = 4;
-      supportedFeatures = [ "kvm" "benchmark" "big-parallel" ];
-      package = pkgs.darwin.linux-builder-x86_64;
-      systems = [ "x86_64-linux" ];
-    };
+    # No linux-builder. nixpkgs dropped x86_64-darwin, which also removed the
+    # aarch64-darwin -> x86_64-linux entry from nixos/lib/qemu-common.nix, so
+    # `pkgs.darwin.linux-builder-x86_64` no longer evaluates here. The NixOS
+    # hosts build themselves via comin, so nothing on this Mac needs to produce
+    # Linux closures.
   };
 
   power.sleep = {
