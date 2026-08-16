@@ -384,7 +384,7 @@ in
       services.dbus.enable = true;
 
       environment.systemPackages = with pkgs; [
-        nodejs_20
+        nodejs_24
         bun
         git
         cacert
@@ -619,7 +619,7 @@ in
           export NPM_CONFIG_PREFIX="$HOME/.npm-global"
           mkdir -p "$HOME/.npm-global/bin"
           if [ ! -x "$HOME/.npm-global/bin/obsidian-mcp-server" ]; then
-            ${pkgs.nodejs_20}/bin/npm install -g obsidian-mcp-server
+            ${pkgs.nodejs_24}/bin/npm install -g obsidian-mcp-server
           fi
           # Wait for Obsidian REST API to be reachable.
           for i in $(seq 1 60); do

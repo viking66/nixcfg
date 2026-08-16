@@ -284,7 +284,7 @@ in
       # it's installed by ExecStartPre via its native installer into the
       # scribe user's HOME on the persistent volume so it can self-update.
       environment.systemPackages = with pkgs; [
-        nodejs_20     # runtime for claude and afterwriting
+        nodejs_24     # runtime for claude and afterwriting
         bun           # required by the claude-plugins-official Telegram plugin's .mcp.json
         git
         cacert
@@ -426,7 +426,7 @@ in
           # so only first boot needs network for this.
           if [ ! -x "$HOME/.npm-global/bin/afterwriting" ]; then
             echo "Installing afterwriting..."
-            ${pkgs.nodejs_20}/bin/npm install -g afterwriting
+            ${pkgs.nodejs_24}/bin/npm install -g afterwriting
           fi
 
           # Symlink the bybren-llc bundle subdirs (skills, agents, commands)
