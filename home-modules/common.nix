@@ -2,6 +2,21 @@
 
 let
   isDarwin = pkgs.stdenv.isDarwin;
+
+  # Two of mcp-nixos's tests walk the real /nix/store, pick whichever file they
+  # happen to find first, and assert the literal word "Error" is absent from the
+  # tool output. Any store path containing that word (highlight.pack.js, most
+  # compilers' test data, ...) fails the build. The result depends on store
+  # contents, so it is flaky rather than a real regression.
+  #
+  # Drop this once upstream stops asserting on arbitrary store file contents:
+  #   https://github.com/utensils/mcp-nixos/blob/main/tests/test_store.py
+  mcp-nixos-untested-store-reads = pkgs.mcp-nixos.overridePythonAttrs (old: {
+    disabledTests = (old.disabledTests or [ ]) ++ [
+      "test_read_text_file"
+      "test_read_truncates_with_limit"
+    ];
+  });
 in
 {
   imports = [ inputs.nix-index-database.homeModules.nix-index ];
@@ -95,7 +110,7 @@ in
     helix
     home-manager
     inconsolata
-    mcp-nixos
+    mcp-nixos-untested-store-reads
     moreutils
     inputs.qmd.packages.${pkgs.stdenv.hostPlatform.system}.default
     ripgrep
