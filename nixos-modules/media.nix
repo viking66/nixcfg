@@ -140,6 +140,40 @@ in
   # Jellyfin needs access to the GPU render device for transcoding
   users.users.jellyfin.extraGroups = [ "render" "video" ];
 
+  # ── Jellyfin transcode cleanup ────────────────────────────────────
+  # Belt-and-braces against a real failure mode: Jellyfin's own
+  # "Clean Transcode Directory" scheduled task can miss files if the
+  # process crashes mid-transcode (or during a startup loop). Left
+  # unchecked, orphans accumulate in /var/cache/jellyfin/transcodes
+  # and eventually fill root, tripping Jellyfin's 2 GiB free-space
+  # check at startup — which then refuses to boot. That's exactly how
+  # gordula went offline on 2026-08-16 (38 GB / 3,920 stale files).
+  systemd.services.jellyfin-transcode-cleanup = {
+    description = "Delete Jellyfin transcode files older than 24h";
+    serviceConfig = {
+      Type = "oneshot";
+      ExecStart = "${pkgs.bash}/bin/bash -c 'test -d /var/cache/jellyfin/transcodes && ${pkgs.findutils}/bin/find /var/cache/jellyfin/transcodes -mindepth 1 -type f -mmin +1440 -delete'";
+    };
+  };
+  systemd.timers.jellyfin-transcode-cleanup = {
+    description = "Daily cleanup of stale Jellyfin transcode files";
+    wantedBy = [ "timers.target" ];
+    timerConfig = {
+      OnCalendar = "daily";
+      Persistent = true;         # catch up if the machine was off at the scheduled time
+      RandomizedDelaySec = "15m"; # avoid firing at exactly 00:00:00
+    };
+  };
+
+  # ── Journal size cap ──────────────────────────────────────────────
+  # During the same 2026-08-16 crashloop, /var/log/journal grew to 4 GB.
+  # A healthy system doesn't need that much history on a 50 GB root FS,
+  # and unbounded journal growth is its own slow leak. Cap it.
+  services.journald.extraConfig = ''
+    SystemMaxUse=1G
+    SystemKeepFree=1G
+  '';
+
   # ── Seerr — request/browse UI for Jellyfin ─────────────────────
   services.seerr = {
     enable = true;
