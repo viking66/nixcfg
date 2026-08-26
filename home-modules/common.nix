@@ -117,6 +117,7 @@ in
     starship
     tree
     tmux
+    vscode-langservers-extracted
     wget
     zlib
   ];
