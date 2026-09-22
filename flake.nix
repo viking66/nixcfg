@@ -75,15 +75,32 @@
     # host is aarch64), and auto-activation now keys on devenv.nix rather than
     # devenv.yaml.
     #
+    # Bumped 2.2 -> 2.3 on 2026-09-22 for portless: `process.proxy.enable` puts
+    # a shared Pingora proxy on port 80 and serves each process at
+    # `<process>.<project>.localhost`, which removes the "which of my stacks owns
+    # port 8002" problem that costs real time with several worktrees running.
+    #
+    # ONE THING TO KNOW BEFORE TURNING THE PROXY ON, measured rather than read:
+    # the hostname derives from the PROJECT NAME, and two projects sharing a name
+    # collide. The second refuses to start with "hostname web.spike.localhost is
+    # already owned by another project" — it fails closed rather than silently
+    # crossing traffic, but it does not start. Since every intel-app worktree is
+    # the same project, `name` has to derive from `config.devenv.root` before
+    # `process.proxy.enable` is any use here. Verified both halves with two
+    # throwaway projects on 2026-09-22.
+    #
+    # The proxy needed no sudo on macOS, despite the release notes mentioning it
+    # for port 80 on Linux.
+    #
     # REMOVE THIS INPUT once `pkgs.devenv.version` in the resolved nixpkgs
-    # is >= 2.2. To check after a `nix flake update`:
+    # is >= 2.3. To check after a `nix flake update`:
     #   nix eval .#nixosConfigurations.<host>.pkgs.devenv.version
     # or for the home-manager packages set:
     #   nix eval nixpkgs#devenv.version --override-input nixpkgs ./flake.lock
     # When you remove this, also revert the `home.packages` line in
     # darwin-configurations/vesal-jason/default.nix back to `pkgs.devenv`.
     devenv = {
-      url = "github:cachix/devenv/v2.2";
+      url = "github:cachix/devenv/v2.3";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };
