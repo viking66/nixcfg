@@ -26,8 +26,14 @@
     "1password-cli"
   ];
 
-  # Host-specific home-manager config for secrets and work-only aliases
-  home-manager.users.jason = { config, ... }: {
+  # Host-specific home-manager config for secrets and work-only tooling
+  home-manager.users.jason = { config, ... }:
+    let
+      # Use the PostgreSQL build that contains pgvector; adding pgvector as a
+      # separate PATH package does not make CREATE EXTENSION vector available.
+      hindsightPostgres = pkgs.postgresql_18.withPackages (ps: [ ps.pgvector ]);
+    in
+    {
     sops = {
       defaultSopsFile = flakeRoot + "/secrets/vesal-jason-secrets.yaml";
 
@@ -61,7 +67,14 @@
       '';
     };
 
-    home.packages = [ inputs.devenv.packages.${pkgs.system}.devenv ];
+    home.packages = [
+      inputs.devenv.packages.${pkgs.system}.devenv
+      pkgs.nodejs_26 # Pi (installed separately) and its npx integrations
+      pkgs.uv        # Hindsight's Python API via uvx
+      pkgs.rustc     # macOS: uv may need to compile litellm
+      pkgs.cargo
+      hindsightPostgres # Local PostgreSQL 18 + pgvector for Hindsight
+    ];
 
     # Work-only alias
     programs.zsh.shellAliases = {
