@@ -29,8 +29,11 @@
       upgrade = true;
     };
 
+    # Homebrew refuses to load formulae from untrusted third-party taps.
+    # Trusting the tap, not one formula, survives upstream renames such as
+    # obsidian-cli -> notesmd-cli.
     taps = [
-      "yakitrak/yakitrak"
+      { name = "yakitrak/yakitrak"; trusted = true; }
     ];
 
     caskArgs = {
@@ -43,7 +46,7 @@
     ];
 
     brews = [
-      "yakitrak/yakitrak/obsidian-cli"
+      "yakitrak/yakitrak/notesmd-cli"
     ];
   };
 

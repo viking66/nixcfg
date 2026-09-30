@@ -1,7 +1,7 @@
 { config, pkgs, lib, inputs, flakeRoot, ... }:
 
 let
-  isDarwin = pkgs.stdenv.isDarwin;
+  isDarwin = pkgs.stdenv.hostPlatform.isDarwin;
 
   # Two of mcp-nixos's tests walk the real /nix/store, pick whichever file they
   # happen to find first, and assert the literal word "Error" is absent from the

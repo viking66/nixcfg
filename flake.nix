@@ -10,7 +10,9 @@
     };
 
     ez-configs = {
-      url = "github:ehllie/ez-configs";
+      # Upstream HEAD plus ehllie/ez-configs#27 (stdenv.is* deprecation fix).
+      # Switch back to github:ehllie/ez-configs once that PR merges.
+      url = "github:magistau/ez-configs/dc144599881813cdfacef08da8ef33c0ab47f798";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.flake-parts.follows = "flake-parts";
     };
@@ -98,11 +100,26 @@
     # or for the home-manager packages set:
     #   nix eval nixpkgs#devenv.version --override-input nixpkgs ./flake.lock
     # When you remove this, also revert the `home.packages` line in
-    # darwin-configurations/vesal-jason/default.nix back to `pkgs.devenv`.
-    devenv = {
-      url = "github:cachix/devenv/v2.3";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
+    # darwin-configurations/vesal-jason/default.nix back to `pkgs.devenv`,
+    # and drop the devenv cache from `nixConfig` below.
+    #
+    # nixpkgs deliberately does NOT follow ours. devenv builds a static,
+    # unity-build fork of Nix, and following our nixpkgs means compiling it
+    # locally against whatever Meson we lock. Meson 1.12.1 (nixpkgs b4fd65b)
+    # breaks that build: src/libstore has a `build/` subdirectory, and Meson
+    # resolves `build/build-log.cc` against the `build` build dir. With
+    # devenv's own pinned nixpkgs, devenv.cachix.org serves the binary.
+    devenv.url = "github:cachix/devenv/v2.3";
+  };
+
+  # Lets the first `nix run .#switch` substitute devenv, before the system
+  # nix.conf knows about this cache. accept-flake-config is on in
+  # darwin-modules/common.nix, and root and jason are both trusted.
+  nixConfig = {
+    extra-substituters = [ "https://devenv.cachix.org" ];
+    extra-trusted-public-keys = [
+      "devenv.cachix.org-1:w1cLUi8dv3hnoSPGAuibQv+f9TZLr6cv/Hm9XgU50cw="
+    ];
   };
 
   outputs = inputs@{ self, nixpkgs, flake-parts, ... }:
@@ -143,16 +160,18 @@
           switch = {
             type = "app";
             program = toString (pkgs.writeShellScript "switch" (
-              if pkgs.stdenv.isDarwin then ''
+              if pkgs.stdenv.hostPlatform.isDarwin then ''
                 set -e
+
+                # macOS sudo keeps the caller's $HOME, so `sudo nix run` warns
+                # that $HOME is not owned by root. Run `nix run .#switch` as the
+                # user instead and escalate here with a root $HOME.
+                if [ "$EUID" -ne 0 ]; then
+                  exec sudo -H "$0" "$@"
+                fi
+
                 HOSTNAME=$(hostname -s)
                 echo "Detected hostname: $HOSTNAME"
-
-                if [ "$EUID" -ne 0 ]; then
-                  echo "This script must be run with sudo:"
-                  echo "  sudo nix run .#switch"
-                  exit 1
-                fi
 
                 # Resolve the invoking user's home (sudo sets HOME=/var/root).
                 ACTUAL_USER="''${SUDO_USER:-$USER}"

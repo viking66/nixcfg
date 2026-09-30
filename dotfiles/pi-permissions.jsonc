@@ -1,0 +1,19 @@
+{
+  "defaultPolicy": {
+    "tools": "allow",
+    "bash": "allow",
+    "mcp": "ask",
+    "skills": "allow",
+    "special": "allow"
+  },
+  "bash": {
+    "*sudo *": "ask",
+    "*doas *": "ask",
+    "*rm -rf *": "ask",
+    "*rm -fr *": "ask",
+    "*git reset --hard*": "ask",
+    "*git clean -fd*": "ask",
+    "*git push --force*": "ask",
+    "*diskutil erase*": "ask"
+  }
+}
