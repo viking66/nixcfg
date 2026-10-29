@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+# rx: run a command and report it to Rex as program status (OSC 7501).
+# The tab shows a spinner while it runs, then stays marked done or error
+# until you look at it.
+#   rx nix run .#switch-home
+# Only runs programs, not shell aliases or functions.
+
+if [ $# -eq 0 ]; then
+  echo "usage: rx <command> [args...]" >&2
+  exit 2
+fi
+
+b64() { printf '%s' "$1" | base64 | tr -d '\n'; }
+
+status() {
+  # Write to the terminal directly so redirecting rx's output keeps the status.
+  { printf '\e]7501;state=%s:app=rx:title=%s:msg=%s\e\\' \
+      "$1" "$(b64 "$(basename "$cmd")")" "$(b64 "$2")" > /dev/tty; } 2>/dev/null
+}
+
+cmd=$1
+line=$*
+
+# A handler, not an ignore: the command still gets Ctrl+C, and rx lives on
+# to report it.
+trap ':' INT
+
+status working "$line"
+"$@"
+code=$?
+
+if [ "$code" -eq 0 ]; then
+  status done "$line: ok in ${SECONDS}s"
+elif [ "$code" -eq 130 ]; then
+  status error "$line: interrupted after ${SECONDS}s"
+else
+  status error "$line: exit $code after ${SECONDS}s"
+fi
+exit "$code"

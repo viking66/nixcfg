@@ -28,3 +28,9 @@ bindkey -M vicmd h backward-char
 bindkey -M vicmd s forward-char
 bindkey -M vicmd _ beginning-of-line
 bindkey -M vicmd -- - end-of-line
+
+# Rex puts its rex CLI dir at the front of PATH, but the PATH changes above
+# can push it back or drop it. Keep this last.
+if [ -n "$REX_BIN_DIR" ]; then
+  export PATH="$REX_BIN_DIR:$PATH"
+fi
