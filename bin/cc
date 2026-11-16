@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+succession_root=${REX_SUCCESSION_HOME:-"$HOME/rex-succession"}
+if [ ! -d "$succession_root/src/rex_succession" ]; then
+  echo "cc: Rex succession is missing at $succession_root" >&2
+  echo "Set REX_SUCCESSION_HOME to its installation directory." >&2
+  exit 1
+fi
+
+state_dir=$(mktemp -d "${TMPDIR:-/tmp}/rex-succession-claude.XXXXXX")
+export PYTHONPATH="$succession_root/src${PYTHONPATH:+:$PYTHONPATH}"
+exec python3 -m rex_succession.cli run-claude \
+  --cwd "$PWD" \
+  --state-dir "$state_dir" \
+  -- "$@"

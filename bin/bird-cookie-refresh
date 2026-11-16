@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+# bird-cookie-refresh: store Safari's x.com Cookie header for the bird wrapper.
+# First, in Safari's Web Inspector => Network on x.com, right-click a graphql
+# request => Copy as cURL. This reads the Cookie header from the clipboard,
+# stores it in the Keychain and clears the clipboard. It never prints it.
+set -euo pipefail
+cookie=$(pbpaste | grep -oiE "(-H|--header) '[Cc]ookie: [^']*'" | sed -E "s/^(-H|--header) '[Cc]ookie: //; s/'\$//" || true)
+if [[ $cookie != *auth_token=* || $cookie != *ct0=* ]]; then
+  echo "bird-cookie-refresh: no Cookie header with auth_token and ct0 on the clipboard." >&2
+  echo "Copy a graphql request with Copy as cURL first." >&2
+  exit 1
+fi
+security add-generic-password -U -a "$USER" -s bird-x-cookie -w "$cookie"
+pbcopy < /dev/null
+echo "Stored ${#cookie} bytes. Check with: bird --plain whoami"

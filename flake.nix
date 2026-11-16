@@ -94,8 +94,23 @@
     # The proxy needed no sudo on macOS, despite the release notes mentioning it
     # for port 80 on Linux.
     #
+    # Pinned to 2.4.0 for cachix/devenv#3200: `devenv mcp` evaluates all of
+    # nixpkgs at startup, and before 2.4.0 it kept that heap (about 4.6 GB
+    # per Claude session on vesal). 2.4.0 frees it after building its cache.
+    #
+    # 2.4.0's collection did not stick here: on 2026-11-14, 8 of 9 servers
+    # kept about 4.3 GB after startup (Boehm is conservative, so a stray
+    # pointer-like word keeps the evaluated nixpkgs reachable). So this
+    # points at a local branch, ~/pkgs/devenv mcp-lazy-cache-init (2.4.0
+    # plus one commit), that builds the search caches on the first search,
+    # in a worker process that exits. Measured 15 MB idle and 61 MB after
+    # searching. Only vesal-jason uses this input. Go back to the github:
+    # URL once upstream ships the change (cachix/devenv#2831).
+    # The branch builds only the devenv crate locally; the Nix libraries
+    # still come from devenv.cachix.org.
+    #
     # REMOVE THIS INPUT once `pkgs.devenv.version` in the resolved nixpkgs
-    # is >= 2.3. To check after a `nix flake update`:
+    # is >= 2.4.0. To check after a `nix flake update`:
     #   nix eval .#nixosConfigurations.<host>.pkgs.devenv.version
     # or for the home-manager packages set:
     #   nix eval nixpkgs#devenv.version --override-input nixpkgs ./flake.lock
@@ -109,7 +124,7 @@
     # breaks that build: src/libstore has a `build/` subdirectory, and Meson
     # resolves `build/build-log.cc` against the `build` build dir. With
     # devenv's own pinned nixpkgs, devenv.cachix.org serves the binary.
-    devenv.url = "github:cachix/devenv/v2.3";
+    devenv.url = "git+file:///Users/jason/pkgs/devenv?ref=mcp-lazy-cache-init";
   };
 
   # Lets the first `nix run .#switch` substitute devenv, before the system

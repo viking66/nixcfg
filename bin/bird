@@ -1,0 +1,79 @@
+#!/usr/bin/env bash
+# bird: read X (Twitter) from the terminal, as your own logged-in account.
+# Wraps @steipete/bird 0.8.0, which calls X's undocumented web GraphQL API.
+# The package was reviewed on 2026-11-07: it only talks to x.com and
+# twitter.com hosts. npm versions are immutable, so the pin keeps it that one.
+#
+#   bird user-tweets mitchellh -n 20
+#   bird read https://x.com/mitchellh/status/123
+#
+# Login comes from Safari's x.com Cookie header, stored in the macOS Keychain,
+# because Rex has no Full Disk Access to read Safari's cookie file. bird needs
+# auth_token and ct0 from it. To set or refresh it: in Safari's Web Inspector
+# => Network on x.com, right-click a graphql request => Copy as cURL, then run
+#   bird-cookie-refresh
+# The header is over 1024 bytes, too long for a terminal prompt, so it goes
+# from the clipboard straight into the Keychain.
+#
+# Read-only on purpose: posting or following through this API gets accounts
+# flagged quickly, and an agent should never do it as you.
+
+set -euo pipefail
+
+keychain() {
+  security find-generic-password -a "$USER" -s "$1" -w 2>/dev/null || {
+    echo "bird: no $1 in the Keychain. See the setup notes in $0." >&2
+    exit 1
+  }
+}
+
+# First positional argument is the command. Skip global options and the value
+# of each option that takes one.
+cmd=""
+args=("$@")
+for ((i = 0; i < ${#args[@]}; i++)); do
+  a=${args[i]}
+  case $a in
+    --auth-token|--ct0|--chrome-profile|--chrome-profile-dir|--firefox-profile|\
+    --cookie-timeout|--cookie-source|--media|--alt|--timeout|--quote-depth)
+      ((i++)) || true ;;
+    -*) ;;
+    *) cmd=$a; break ;;
+  esac
+done
+
+case $cmd in
+  tweet|reply|follow|unfollow|unbookmark)
+    echo "bird: '$cmd' changes your X account; this wrapper is read-only." >&2
+    exit 2 ;;
+esac
+
+# Rate limits. On 7 Nov 2026 a burst of about ten paged reads in a minute got
+# this client's requests rejected (403 code 353) while Safari kept working.
+# Cap each call at 40 posts and 2 pages, and space calls 10 seconds apart.
+max_count=40 max_pages=2 spacing=10
+for ((i = 0; i < ${#args[@]}; i++)); do
+  case ${args[i]} in
+    -n|--count) (( ${args[i+1]:-0} > max_count )) && args[i+1]=$max_count ;;
+    --max-pages) (( ${args[i+1]:-0} > max_pages )) && args[i+1]=$max_pages ;;
+    --all) args=("${args[@]:0:i+1}" --max-pages "$max_pages" "${args[@]:i+1}"); ((i += 2)) ;;
+  esac
+done
+stamp="${TMPDIR:-/tmp}/bird-last-call"
+if [[ -f $stamp ]]; then
+  wait=$(( $(stat -f %m "$stamp") + spacing - $(date +%s) ))
+  (( wait > 0 )) && sleep "$wait"
+fi
+touch "$stamp"
+
+cookie=$(keychain bird-x-cookie)
+cookie_value() { printf '%s' "$cookie" | tr ';' '\n' | sed 's/^ *//' | sed -n "s/^$1=//p"; }
+AUTH_TOKEN=$(cookie_value auth_token)
+CT0=$(cookie_value ct0)
+if [[ -z $AUTH_TOKEN || -z $CT0 ]]; then
+  echo "bird: the stored cookie has no auth_token or ct0. Run bird-cookie-refresh." >&2
+  exit 1
+fi
+export AUTH_TOKEN CT0
+
+exec npx --yes @steipete/bird@0.8.0 "${args[@]}"

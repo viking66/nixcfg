@@ -24,9 +24,9 @@ let
     "Workspace.lightThemeID" = "merino-light";
     "Workspace.inactivePaneFadeMode" = "both";
     "Workspace.paneDensity" = "compact";
+    "Workspace.paneHeaderVisibility" = "onHover";
     "Workspace.shellIconTheme" = "default";
     "Workspace.showsActivePaneBorder" = true;
-    "Workspace.showsPaneHeaders" = false;
     "Workspace.tabIconCount" = 1;
     "Workspace.tabIconTintMode" = "off";
     "Workspace.terminalFontName" = "Inconsolata";
@@ -34,6 +34,7 @@ let
     "Workspace.terminalFontSmoothing" = true;
     "Workspace.terminalImproveTextContrast" = true;
     "Workspace.terminalSmoothScrolling" = false;
+    "Workspace.toolbarBehavior" = "onHover";
     "Workspace.usesStandardInactiveWindowPaneStyles" = true;
     # Lets rex -C <client> do client.* drive the app from scripts and the CLI.
     "rex.client.remoteControl" = true;
