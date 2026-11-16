@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+export OP_BIOMETRIC_UNLOCK_ENABLED=true
+
 succession_root=${REX_SUCCESSION_HOME:-"$HOME/rex-succession"}
 if [ ! -d "$succession_root/src/rex_succession" ]; then
   echo "cx: Rex succession is missing at $succession_root" >&2
