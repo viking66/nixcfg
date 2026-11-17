@@ -20,6 +20,8 @@ let
 
   rexDefaults = {
     "Onboarding.firstRun" = "not-needed";
+    "Workspace.cursorShader" = "frozen";
+    "Workspace.cursorShadersEnabled" = true;
     "Workspace.darkThemeID" = "custom-B297F63A-21DC-4B6B-82C1-A7A7127ACE5B"; # Nord
     "Workspace.lightThemeID" = "merino-light";
     "Workspace.inactivePaneFadeMode" = "both";
