@@ -238,5 +238,20 @@ rex.bind("cmd+i", "last_place")
 -- Reload this file, as prefix r did in tmux.
 rex.bind(prefix .. ">r", "client.config.reload")
 
--- Scrollback in Helix, until copy/scroll mode exists.
-rex.bind(prefix .. ">c", "scrollback_edit")
+-- Copy mode on prefix c, as in tmux. Scrollback in Helix on prefix C, for
+-- heavier edits.
+rex.bind(prefix .. ">c", "pane.copy_mode.enter")
+rex.bind(prefix .. ">shift+c", "scrollback_edit")
+
+-- Copy mode keys mirror helix.config.toml: Dvorak home row h/t/n/s moves,
+-- j/J jump till a character, l/L repeat the search, - and _ go to line
+-- end and start. k keeps its default (up).
+for key, dir in pairs(dirs) do
+  rex.bind("copy/" .. key, "pane.copy_mode.move", { to = dir })
+end
+rex.bind("copy/j", "pane.copy_mode.find", { direction = "forward", till = true })
+rex.bind("copy/shift+j", "pane.copy_mode.find", { direction = "backward", till = true })
+rex.bind("copy/l", "pane.copy_mode.search_again", { direction = "same" })
+rex.bind("copy/shift+l", "pane.copy_mode.search_again", { direction = "opposite" })
+rex.bind("copy/-", "pane.copy_mode.move", { to = "line_end" })
+rex.bind("copy/shift+-", "pane.copy_mode.move", { to = "line_start" })
