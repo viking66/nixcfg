@@ -235,6 +235,9 @@ rex.bind("cmd+o", "step", { action = "session.previous" })
 rex.bind("cmd+e", "step", { action = "session.next" })
 rex.bind("cmd+i", "last_place")
 
+-- Command palette on prefix Enter. Shift+Cmd+P is one-handed on Dvorak.
+rex.bind(prefix .. ">enter", "client.palette.toggle")
+
 -- Reload this file, as prefix r did in tmux.
 rex.bind(prefix .. ">r", "client.config.reload")
 
